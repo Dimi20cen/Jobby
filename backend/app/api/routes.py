@@ -25,7 +25,15 @@ def health() -> HealthResponse:
 @router.post("/generate", response_model=GenerateResponse)
 def generate(payload: GenerateRequest, db: Session = Depends(get_db)) -> GenerateResponse:
     try:
-        bullets, cover_letter = generate_application(
+        (
+            bullets,
+            cover_letter,
+            interview_questions,
+            relevance_score,
+            jd_coverage,
+            risk_flags,
+            used_model,
+        ) = generate_application(
             job_description=payload.job_description,
             cv_text=payload.cv_text,
         )
@@ -47,6 +55,11 @@ def generate(payload: GenerateRequest, db: Session = Depends(get_db)) -> Generat
     return GenerateResponse(
         tailored_bullets=application.tailored_bullets,
         cover_letter=application.cover_letter,
+        interview_questions=interview_questions,
+        relevance_score=relevance_score,
+        jd_coverage=jd_coverage,
+        risk_flags=risk_flags,
+        used_model=used_model,
         application_id=application.id,
         created_at=application.created_at,
     )

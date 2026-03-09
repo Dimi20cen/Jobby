@@ -45,7 +45,7 @@ export default function HomePage() {
   return (
     <main>
       <h1>AI Jobber</h1>
-      <p>Fast AI-assisted first drafts for job applications.</p>
+      <p>Fast AI-assisted cover letters and interview prep for job applications.</p>
       <InputForm loading={loading} onSubmit={handleSubmit} />
       {error ? <p className="error panel">{error}</p> : null}
       <OutputSections data={result} />

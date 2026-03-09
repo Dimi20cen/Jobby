@@ -18,5 +18,10 @@ Candidate CV:
 Task:
 1) Create 5 concise tailored CV bullet points.
 2) Create one draft cover letter (120-220 words).
+3) Create 6 interview questions likely to be asked for this role.
+4) Provide an evaluation object with:
+   - relevance_score: integer from 0 to 100
+   - jd_coverage: array of short strings describing key JD requirements covered
+   - risk_flags: array of short strings for potential weak spots or generic claims
 Return only valid JSON.
 """.strip()

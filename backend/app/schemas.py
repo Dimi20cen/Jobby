@@ -12,6 +12,11 @@ class GenerateRequest(BaseModel):
 class GenerateResponse(BaseModel):
     tailored_bullets: list[str]
     cover_letter: str
+    interview_questions: list[str]
+    relevance_score: int
+    jd_coverage: list[str]
+    risk_flags: list[str]
+    used_model: str
     application_id: UUID
     created_at: datetime
 
