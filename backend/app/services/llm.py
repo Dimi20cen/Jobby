@@ -64,7 +64,7 @@ def generate_application(
     if "openrouter.ai" in base_url:
         request_kwargs["extra_headers"] = {
             "HTTP-Referer": os.getenv("OPENROUTER_SITE_URL", "http://localhost:3000"),
-            "X-Title": os.getenv("OPENROUTER_APP_NAME", "ai-jobber"),
+            "X-Title": os.getenv("OPENROUTER_APP_NAME", "jobby"),
         }
 
     response = None

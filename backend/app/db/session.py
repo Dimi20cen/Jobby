@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", "sqlite:///./ai_jobber.db"
+    "DATABASE_URL", "sqlite:///./jobby.db"
 )
 
 engine_kwargs = {"pool_pre_ping": True}

@@ -1,61 +1,59 @@
-# AI Jobber
+# Jobby
 
-AI Jobber is a local-first AI Job Hunt Copilot that tailors CV bullets, drafts cover letters, and generates interview questions from a job description and CV text.
+Jobby is a local-first job application manager for people actively applying to roles.
 
-## Problem
-Job applications are repetitive and time-consuming. AI Jobber reduces copy/paste effort and gives fast first drafts while keeping the user in control.
+It helps you keep every application in one place, track where you are in the pipeline, store the CV and job ad used for each application, and generate AI-assisted cover letters and interview questions inside the same workflow.
 
-## Architecture
-```mermaid
-flowchart LR
-    U[User Browser] --> F[Next.js Frontend]
-    F -->|HTTP| B[FastAPI Backend]
-    B -->|LLM call| R[OpenRouter API]
-    B -->|SQLAlchemy| P[(Postgres)]
+## Why It Exists
+Job hunting usually gets split across too many places:
+- spreadsheets for tracking
+- job boards for the original listing
+- notes apps for follow-ups
+- chat tools for rewriting application materials
+
+Jobby pulls that workflow into one product-shaped app.
+
+## What It Does
+- create and manage application records
+- track status across a simple pipeline
+- store job description, CV used, notes, and job URL
+- view applications in a dashboard
+- see a daily activity graph for momentum
+- generate cover letters, tailored bullets, and interview questions for a saved application
+
+## Current Status
+This project is in active development.
+
+The current MVP includes:
+- dashboard home page
+- application detail editor
+- AI generation inside an application record
+- local-first Docker setup
+
+Planned next:
+- browser extension capture flow
+- Gmail integration for application-related emails
+- better retrieval and application intelligence
+
+## Quick Start
+```bash
+cp .env.example .env
+docker compose -f infra/docker-compose.yml --env-file .env up --build
 ```
 
-## Repo Structure
-- `frontend/` Next.js + TypeScript UI
-- `backend/` FastAPI service + persistence + LLM integration
-- `infra/` docker-compose orchestration
-
-## Local Run
-1. Copy env file:
-   - `cp .env.example .env`
-2. Start stack:
-   - `docker compose -f infra/docker-compose.yml --env-file .env up --build`
-3. Open app:
-   - `http://localhost:3000`
-
-### LLM Provider Notes
-- Default is OpenRouter (`OPENROUTER_API_KEY`, `OPENAI_BASE_URL=https://openrouter.ai/api/v1`).
-- OpenAI-compatible providers are supported via `OPENAI_API_KEY` + `OPENAI_BASE_URL`.
-- Gemini key can be used through an OpenAI-compatible Gemini endpoint by setting:
-  - `GEMINI_API_KEY` (or `OPENAI_API_KEY`)
-  - `OPENAI_BASE_URL` to your Gemini OpenAI-compatible base URL
-  - `OPENAI_MODEL` to the Gemini model ID exposed by that endpoint
-- Optional fallback chain:
-  - `FALLBACK_MODELS=model-a,model-b,model-c`
-  - Backend tries `OPENAI_MODEL` first, then each fallback model if needed.
-
-## API
-- `GET /health`
-- `POST /generate`
-- `GET /applications?limit=5`
-
-`POST /generate` returns:
-- `tailored_bullets`
-- `cover_letter`
-- `interview_questions`
-- `relevance_score`
-- `jd_coverage`
-- `risk_flags`
-- `used_model`
+Then open:
+- `http://localhost:3000`
 
 ## Screenshots
-Add screenshots in this section after running locally.
+Screenshots and demo assets can live here as the UI matures.
 
-## Roadmap (Phase 2)
-- pgvector embeddings + semantic history search
-- AWS deployment (ECS/Fargate + RDS + secrets management)
-- Better scoring/ranking of generated outputs
+## For Developers
+Developer-facing documentation lives in [docs/](./docs/README.md).
+
+That includes:
+- architecture notes
+- backend API documentation
+- data model documentation
+- frontend structure notes
+- local development details
+- roadmap notes

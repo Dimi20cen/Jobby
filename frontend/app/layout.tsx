@@ -2,8 +2,8 @@ import './globals.css';
 import { ReactNode } from 'react';
 
 export const metadata = {
-  title: 'AI Jobber',
-  description: 'AI job hunt copilot'
+  title: 'Jobby',
+  description: 'Application tracking and AI support for job seekers'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
