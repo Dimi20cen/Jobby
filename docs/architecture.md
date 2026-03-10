@@ -70,7 +70,7 @@ That means:
 
 ## Current Limitations
 - no auth or multi-user separation
-- no browser extension ingestion yet
+- browser extension ingestion is limited to manual popup capture and save/generate
 - no Gmail or inbox linking yet
 - no fit-with-profile scoring yet
 - no formal migration system beyond startup patching for local development

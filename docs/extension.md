@@ -26,9 +26,10 @@ Flow:
 1. User opens the popup on a job page.
 2. Popup runs `chrome.scripting.executeScript` against the active tab.
 3. The injected scraper extracts title, company, location, URL, and description.
-4. The popup form is prefilled with those values plus the stored default CV.
-5. The user saves a draft through `POST /applications`.
-6. Optional: the popup calls `POST /applications/{id}/generate`.
+4. The popup checks Jobby for an existing application with the same `job_url`.
+5. If found, the popup rehydrates from the saved record; otherwise it keeps the scraped values.
+6. The user saves a draft through `POST /applications` or updates the existing record with `PUT /applications/{id}`.
+7. Optional: the popup calls `POST /applications/{id}/generate`.
 
 ## Stored Settings
 The options page uses `chrome.storage.sync` for:
@@ -43,15 +44,16 @@ Defaults:
 ## Current Scraping Strategy
 The scraper uses a layered fallback approach:
 - JSON-LD `JobPosting` data when available
-- common job-board selectors for title, company, and location
-- longest matching description block from known content containers
-- page title fallback for the job title
+- board-specific extractors for LinkedIn and Indeed
+- generic selectors for title, company, and location on other sites
+- DOM-to-text cleanup for description extraction with noise filtering
+- page metadata fallback for the job title
 
-This keeps the extension useful across multiple sites without needing per-site code for every board.
+This keeps the extension useful across multiple sites while giving better quality on the boards we care about most.
 
 ## Known Limits
 - extraction is heuristic, so some boards will need manual cleanup
-- no deduplication yet when the same listing is captured twice
+- LinkedIn location extraction is still inconsistent on some layouts
 - no direct deep-link into a newly created application yet
 - no background sync or page-change listeners
 - no browser-store packaging yet
@@ -64,8 +66,8 @@ This keeps the extension useful across multiple sites without needing per-site c
 5. Open the extension options and confirm the backend/dashboard URLs
 
 ## Next Improvements
-- add job-board-specific extractors for LinkedIn, Greenhouse, Lever, Ashby, and Workday
-- detect duplicates by `job_url`
+- improve LinkedIn location extraction on newer layouts
+- add job-board-specific extractors for Greenhouse, Lever, Ashby, and Workday
 - open the saved application detail page after capture
 - support quick status selection such as `draft` vs `applied`
 - add small automated tests for popup payload formatting

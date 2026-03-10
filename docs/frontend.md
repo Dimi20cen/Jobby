@@ -41,7 +41,7 @@ Displays the dashboard table and handles delete actions.
 Displays the contribution-style graph based on `GET /applications/activity`.
 
 ### `ExtensionCard`
-Placeholder product card for the planned Chrome extension.
+Dashboard card that points users to the unpacked Chrome extension and its setup flow.
 
 ### `ApplicationEditor`
 The core form experience for:
