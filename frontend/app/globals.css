@@ -2,6 +2,7 @@
   --bg: #f7f1e8;
   --panel: rgba(255, 251, 245, 0.9);
   --panel-strong: #fffdf8;
+  --panel-soft: rgba(255, 247, 238, 0.8);
   --text: #1f2937;
   --muted: #6b7280;
   --accent: #c2410c;
@@ -38,7 +39,7 @@ a {
 main {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 24px 20px 48px;
 }
 
 h1,
@@ -62,16 +63,6 @@ p {
   margin-bottom: 18px;
 }
 
-.hero {
-  display: grid;
-  gap: 18px;
-}
-
-.hero h1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  max-width: 10ch;
-}
-
 .hero-actions,
 .action-row,
 .dashboard-grid,
@@ -85,12 +76,31 @@ p {
 }
 
 .hero-actions {
-  align-items: start;
+  align-items: stretch;
 }
 
 .dashboard-grid,
 .editor-layout {
   grid-template-columns: 1fr;
+}
+
+.dashboard-topbar {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+  margin-bottom: 18px;
+}
+
+.summary-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.summary-strip-simple {
+  margin-top: 0;
 }
 
 .metric-card {
@@ -106,6 +116,28 @@ p {
 
 .metric-card strong {
   font-size: 1.6rem;
+}
+
+.metric-card.compact {
+  min-width: 0;
+}
+
+.metric-card.minimal {
+  padding: 12px 14px;
+}
+
+.toolbar-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.compact-panel {
+  padding: 16px 20px;
+}
+
+.toolbar-heading {
+  display: grid;
+  gap: 6px;
 }
 
 .eyebrow {
@@ -125,6 +157,11 @@ label {
   display: grid;
   gap: 8px;
   font-weight: 600;
+}
+
+label span {
+  color: var(--accent-deep);
+  font-size: 0.88rem;
 }
 
 input,
@@ -182,8 +219,20 @@ button:disabled {
   color: var(--danger);
 }
 
+.notice-panel {
+  background: rgba(194, 65, 12, 0.08);
+}
+
 .table-wrap {
   overflow-x: auto;
+}
+
+.applications-panel {
+  margin-top: 18px;
+}
+
+.quiet-panel {
+  margin-top: 18px;
 }
 
 .applications-table {
@@ -209,6 +258,16 @@ button:disabled {
 .applications-table td a {
   color: var(--accent-deep);
   font-weight: 700;
+}
+
+.table-primary {
+  display: grid;
+  gap: 4px;
+}
+
+.table-meta {
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .table-link {
@@ -282,22 +341,125 @@ button:disabled {
   grid-template-columns: 1fr;
 }
 
+.form-section {
+  border-top: 1px solid var(--border);
+  margin-top: 22px;
+  padding-top: 22px;
+}
+
+.form-section:first-of-type {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.section-heading.stacked {
+  grid-template-columns: 1fr;
+  margin-bottom: 10px;
+}
+
+.page-header {
+  align-items: start;
+}
+
+.header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.header-chip {
+  align-items: center;
+  background: rgba(124, 45, 18, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+.action-stack {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.action-support {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+}
+
+.action-support p {
+  margin: 0;
+}
+
+.ai-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.ai-intro,
+.empty-state {
+  display: grid;
+  gap: 8px;
+}
+
+.compact-copy {
+  gap: 4px;
+}
+
+.ai-empty,
+.empty-state p:first-child {
+  color: var(--accent-deep);
+  font-weight: 700;
+  margin: 0;
+}
+
+.ai-metrics {
+  display: grid;
+  gap: 12px;
+}
+
+.ai-metric-card {
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.ai-metric-card strong {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.ai-metric-label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .error {
   color: var(--danger);
 }
 
 @media (min-width: 760px) {
-  .hero,
+  .dashboard-topbar,
   .page-header,
   .toolbar,
-  .section-heading {
+  .section-heading,
+  .toolbar-heading {
     align-items: center;
     grid-template-columns: 1fr auto;
-  }
-
-  .hero-actions {
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
   }
 
   .dashboard-grid,
@@ -305,7 +467,21 @@ button:disabled {
     grid-template-columns: 1.4fr 1fr;
   }
 
+  .action-support {
+    grid-template-columns: 1fr auto;
+  }
+
+  .ai-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 759px) {
+  .summary-strip {
+    grid-template-columns: 1fr;
   }
 }

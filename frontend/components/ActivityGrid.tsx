@@ -15,13 +15,12 @@ function tone(count: number): string {
 
 export default function ActivityGrid({ items }: Props) {
   return (
-    <section className="panel">
+    <section className="panel quiet-panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Momentum</p>
-          <h2>Application Activity</h2>
+          <h2>Activity</h2>
         </div>
-        <p className="muted">Last {items.length} days</p>
+        <p className="muted">{items.length} days</p>
       </div>
       <div className="activity-grid">
         {items.map((item) => (
@@ -32,7 +31,6 @@ export default function ActivityGrid({ items }: Props) {
           />
         ))}
       </div>
-      <p className="muted">Each square represents one day. Darker squares mean more applications.</p>
     </section>
   );
 }

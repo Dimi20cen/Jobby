@@ -13,6 +13,18 @@ type Props = {
   onDeleted: (id: string) => void;
 };
 
+function formatDate(value: string | null): string {
+  if (!value) {
+    return 'Not yet';
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(new Date(value));
+}
+
 export default function ApplicationTable({ items, onDeleted }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,19 +46,18 @@ export default function ApplicationTable({ items, onDeleted }: Props) {
   }
 
   return (
-    <Card>
+    <Card className="applications-panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Dashboard</p>
-          <h2>Applications</h2>
+          <h2>All applications</h2>
         </div>
-        <LinkButton href="/applications/new">
-          New Application
-        </LinkButton>
       </div>
       {error ? <p className="error">{error}</p> : null}
       {items.length === 0 ? (
-        <p className="muted">No applications yet. Create one to start building your pipeline.</p>
+        <div className="empty-state">
+          <p>No applications yet.</p>
+          <p className="muted">Create one manually or use the extension to capture a job page into Jobby.</p>
+        </div>
       ) : (
         <div className="table-wrap">
           <table className="applications-table">
@@ -65,15 +76,18 @@ export default function ApplicationTable({ items, onDeleted }: Props) {
               {items.map((item) => (
                 <tr key={item.id}>
                   <td>
-                    <LinkButton href={`/applications/${item.id}`} className="table-link" variant="secondary">
-                      {item.company_name}
-                    </LinkButton>
+                    <div className="table-primary">
+                      <LinkButton href={`/applications/${item.id}`} className="table-link" variant="secondary">
+                        {item.company_name}
+                      </LinkButton>
+                      <span className="table-meta">Updated {formatDate(item.updated_at)}</span>
+                    </div>
                   </td>
                   <td>{item.job_title}</td>
                   <td>
                     <StatusBadge status={item.status} />
                   </td>
-                  <td>{item.applied_date || 'Not yet'}</td>
+                  <td>{formatDate(item.applied_date)}</td>
                   <td>{item.location || 'Remote / n/a'}</td>
                   <td>{item.cv_used ? 'Saved' : 'Missing'}</td>
                   <td>

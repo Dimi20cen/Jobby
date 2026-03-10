@@ -810,8 +810,7 @@ function buildPayload() {
     cv_used: cvUsed,
     notes,
     cover_letter: '',
-    interview_questions: [],
-    tailored_bullets: []
+    interview_questions: []
   };
 }
 

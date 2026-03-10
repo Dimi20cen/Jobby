@@ -3,13 +3,9 @@ import { LinkButton } from '@/components/ui/Button';
 
 export default function ExtensionCard() {
   return (
-    <Card className="extension-card">
-      <p className="eyebrow">Capture Layer</p>
-      <h2>Chrome Extension</h2>
-      <p>
-        Save jobs straight from job boards into Jobby. The local MVP now lives in the repo as an
-        unpacked Chrome extension with scraping, draft creation, and save-plus-generate support.
-      </p>
+    <Card className="extension-card quiet-panel">
+      <h2>Chrome extension</h2>
+      <p className="muted">Capture a job posting and save it into Jobby.</p>
       <LinkButton href="https://github.com/Dimi20cen/Jobby/tree/main/extension" variant="secondary">
         Open Extension Files
       </LinkButton>

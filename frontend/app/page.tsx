@@ -66,42 +66,39 @@ export default function HomePage() {
 
   return (
     <main>
-      <Card className="hero">
+      <div className="dashboard-topbar">
         <div>
-          <p className="eyebrow">Job Application Manager</p>
-          <h1>Track every application, edit your materials, and keep momentum visible.</h1>
-          <p className="muted">
-            Jobby now works like an operating system for your job hunt: one dashboard, one record per application,
-            and AI support inside each record when you need it.
-          </p>
+          <p className="eyebrow">Dashboard</p>
+          <h1>Applications</h1>
         </div>
-        <div className="hero-actions">
-          <LinkButton href="/applications/new">
-            Create Application
-          </LinkButton>
-          <span className="metric-card">
-            <strong>{totals.total}</strong>
-            <span>Total tracked</span>
-          </span>
-          <span className="metric-card">
-            <strong>{totals.applied}</strong>
-            <span>Applied</span>
-          </span>
-          <span className="metric-card">
-            <strong>{totals.active}</strong>
-            <span>Active pipeline</span>
-          </span>
+        <LinkButton href="/applications/new">New Application</LinkButton>
+      </div>
+
+      <section className="summary-strip summary-strip-simple" aria-label="Application summary">
+        <span className="metric-card compact minimal">
+          <strong>{totals.total}</strong>
+          <span>Total tracked</span>
+        </span>
+        <span className="metric-card compact minimal">
+          <strong>{totals.active}</strong>
+          <span>Active</span>
+        </span>
+        <span className="metric-card compact minimal">
+          <strong>{totals.applied}</strong>
+          <span>Applied</span>
+        </span>
+      </section>
+
+      <Card className="toolbar-panel compact-panel">
+        <div className="toolbar">
+          <SelectField
+            label="Status filter"
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value as '' | ApplicationStatus)}
+            options={statusFilters.map((filter) => ({ label: filter.label, value: filter.value }))}
+          />
         </div>
       </Card>
-
-      <div className="toolbar">
-        <SelectField
-          label="Status filter"
-          value={statusFilter}
-          onChange={(value) => setStatusFilter(value as '' | ApplicationStatus)}
-          options={statusFilters.map((filter) => ({ label: filter.label, value: filter.value }))}
-        />
-      </div>
 
       {error ? (
         <Card>
@@ -115,10 +112,8 @@ export default function HomePage() {
       ) : null}
       {!loading ? <ApplicationTable items={items} onDeleted={(id) => setItems((current) => current.filter((item) => item.id !== id))} /> : null}
 
-      <div className="dashboard-grid">
-        <ActivityGrid items={activity} />
-        <ExtensionCard />
-      </div>
+      <ActivityGrid items={activity} />
+      <ExtensionCard />
     </main>
   );
 }
