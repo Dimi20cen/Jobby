@@ -24,7 +24,7 @@ Dashboard home page.
 Responsibilities:
 - fetch application summaries
 - fetch activity graph data
-- support status filtering
+- support status filtering inside the applications panel
 - show application table
 - show extension CTA card
 

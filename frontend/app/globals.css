@@ -92,6 +92,16 @@ p {
   margin-bottom: 18px;
 }
 
+.dashboard-shell-header {
+  margin-bottom: 22px;
+}
+
+.brand-lockup {
+  align-items: center;
+  display: inline-flex;
+  min-height: 40px;
+}
+
 .summary-strip {
   display: grid;
   gap: 12px;
@@ -227,8 +237,52 @@ button:disabled {
   overflow-x: auto;
 }
 
+.table-wrap-scrollable {
+  max-height: 295px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
 .applications-panel {
   margin-top: 18px;
+}
+
+.applications-toolbar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.applications-subtitle {
+  color: var(--accent-deep);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.status-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.status-chip {
+  background: rgba(255, 247, 238, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent-deep);
+  font-size: 0.92rem;
+  font-weight: 700;
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+.status-chip.is-active {
+  background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+  border-color: transparent;
+  color: white;
 }
 
 .quiet-panel {
@@ -237,7 +291,7 @@ button:disabled {
 
 .applications-table {
   border-collapse: collapse;
-  min-width: 860px;
+  min-width: 720px;
   width: 100%;
 }
 
@@ -260,6 +314,13 @@ button:disabled {
   font-weight: 700;
 }
 
+.applications-table thead th {
+  background: rgba(247, 241, 232, 0.92);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
 .table-primary {
   display: grid;
   gap: 4px;
@@ -277,6 +338,38 @@ button:disabled {
   justify-content: flex-start;
   min-height: auto;
   padding: 0;
+}
+
+.table-actions-cell {
+  width: 1%;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.icon-button {
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+}
+
+.icon-button svg {
+  height: 18px;
+  width: 18px;
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
 }
 
 .status-pill {
@@ -477,6 +570,11 @@ button:disabled {
 
   .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .applications-toolbar {
+    align-items: center;
+    grid-template-columns: auto 1fr;
   }
 }
 
