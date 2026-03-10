@@ -47,12 +47,60 @@ def test_create_list_and_activity() -> None:
         assert created.company_name == "OpenAI"
         assert created.status == "applied"
 
-        items = routes.list_applications(status_filter=None, limit=100, sort="updated_at", db=db).items
+        items = routes.list_applications(status_filter=None, job_url=None, limit=100, sort="updated_at", db=db).items
         assert len(items) == 1
         assert items[0].job_title == "AI Engineer"
 
         activity = routes.application_activity(days=7, db=db).items
         assert sum(point.count for point in activity) == 1
+
+
+def test_list_applications_can_filter_by_job_url() -> None:
+    with build_session() as db:
+        routes.create_application(
+            CreateApplicationRequest(
+                company_name="OpenAI",
+                job_title="AI Engineer",
+                status="draft",
+                applied_date=None,
+                location="Remote",
+                job_url="https://example.com/jobs/1",
+                job_description="Build product-grade AI systems for users.",
+                cv_used="Experienced software engineer with shipped AI features.",
+                notes="",
+                cover_letter="",
+                interview_questions=[],
+                tailored_bullets=[],
+            ),
+            db,
+        )
+        routes.create_application(
+            CreateApplicationRequest(
+                company_name="Elsewhere",
+                job_title="Backend Engineer",
+                status="draft",
+                applied_date=None,
+                location="Remote",
+                job_url="https://example.com/jobs/2",
+                job_description="Build backend systems for internal tooling.",
+                cv_used="Experienced backend engineer with API and platform work.",
+                notes="",
+                cover_letter="",
+                interview_questions=[],
+                tailored_bullets=[],
+            ),
+            db,
+        )
+
+        items = routes.list_applications(
+            status_filter=None,
+            job_url="https://example.com/jobs/1",
+            limit=100,
+            sort="updated_at",
+            db=db,
+        ).items
+        assert len(items) == 1
+        assert items[0].company_name == "OpenAI"
 
 
 def test_generate_for_application(monkeypatch) -> None:

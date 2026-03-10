@@ -73,6 +73,7 @@ def health() -> HealthResponse:
 @router.get("/applications", response_model=ApplicationsResponse)
 def list_applications(
     status_filter: str | None = Query(default=None, alias="status"),
+    job_url: str | None = Query(default=None),
     limit: int = Query(default=100, ge=1, le=500),
     sort: str = Query(default="updated_at"),
     db: Session = Depends(get_db),
@@ -86,6 +87,8 @@ def list_applications(
     query = select(Application)
     if status_filter:
         query = query.where(Application.status == status_filter)
+    if job_url:
+        query = query.where(Application.job_url == job_url)
     rows = db.execute(query.order_by(desc(sort_column)).limit(limit)).scalars().all()
     return ApplicationsResponse(items=[_to_summary(row) for row in rows])
 

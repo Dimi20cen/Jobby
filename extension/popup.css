@@ -18,38 +18,15 @@
 
 body {
   margin: 0;
-  width: 380px;
-  background: radial-gradient(circle at top, #fdf8ef 0%, var(--bg) 62%);
+  width: 360px;
+  background: #dfdde3;
   color: var(--ink);
   font: 13px/1.45 "Segoe UI", sans-serif;
+  overflow-x: hidden;
 }
 
 .popup-shell {
-  padding: 16px;
-}
-
-.popup-header {
-  margin-bottom: 12px;
-}
-
-.eyebrow {
-  margin: 0 0 4px;
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 0;
-  font-size: 22px;
-  line-height: 1.1;
-}
-
-.subtitle {
-  margin: 6px 0 0;
-  color: var(--muted);
+  padding: 14px 18px 16px;
 }
 
 .form-stack {
@@ -59,7 +36,7 @@ h1 {
 
 .field {
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 
 .field span {
@@ -74,16 +51,17 @@ input,
 textarea {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
+  border-radius: 4px;
+  background: #f3f3f3;
   color: var(--ink);
-  padding: 10px 12px;
+  padding: 8px 10px;
   font: inherit;
 }
 
 textarea {
   resize: vertical;
-  min-height: 64px;
+  min-height: 78px;
+  font-family: "Consolas", "Courier New", monospace;
 }
 
 input:focus,
@@ -98,13 +76,9 @@ textarea:focus {
   grid-template-columns: 1fr 1fr;
 }
 
-.button-row.compact {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
 button {
   border: 0;
-  border-radius: 999px;
+  border-radius: 4px;
   padding: 10px 12px;
   font: inherit;
   font-weight: 700;
@@ -131,6 +105,15 @@ button.ghost:hover {
   background: #e2d8c9;
 }
 
+button.generate {
+  background: #0da547;
+  color: white;
+}
+
+button.generate:hover {
+  background: #0a8a3a;
+}
+
 button:disabled {
   cursor: wait;
   opacity: 0.7;
@@ -138,8 +121,9 @@ button:disabled {
 
 .status {
   min-height: 18px;
-  margin: 12px 2px 0;
+  margin: 10px 2px 0;
   color: var(--muted);
+  text-align: center;
 }
 
 .status.error {

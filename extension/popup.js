@@ -9,20 +9,17 @@ const statusEl = document.getElementById('status');
 const refillBtn = document.getElementById('refillBtn');
 const saveBtn = document.getElementById('saveBtn');
 const saveGenerateBtn = document.getElementById('saveGenerateBtn');
-const dashboardBtn = document.getElementById('dashboardBtn');
-const optionsBtn = document.getElementById('optionsBtn');
 
 const fields = {
   jobTitle: document.getElementById('jobTitle'),
   companyName: document.getElementById('companyName'),
   location: document.getElementById('location'),
   jobUrl: document.getElementById('jobUrl'),
-  jobDescription: document.getElementById('jobDescription'),
-  notes: document.getElementById('notes'),
-  cvUsed: document.getElementById('cvUsed')
+  jobDescription: document.getElementById('jobDescription')
 };
 
 let settings = { ...DEFAULT_SETTINGS };
+let currentApplicationId = null;
 
 function setStatus(message, tone = '') {
   statusEl.textContent = message;
@@ -30,7 +27,7 @@ function setStatus(message, tone = '') {
 }
 
 function setBusy(isBusy) {
-  [refillBtn, saveBtn, saveGenerateBtn, dashboardBtn, optionsBtn].forEach((button) => {
+  [refillBtn, saveBtn, saveGenerateBtn].forEach((button) => {
     button.disabled = isBusy;
   });
 }
@@ -39,11 +36,16 @@ function cleanBaseUrl(url) {
   return url.replace(/\/+$/, '');
 }
 
+function populateFieldsFromRecord(record) {
+  fields.jobTitle.value = record.job_title || '';
+  fields.companyName.value = record.company_name || '';
+  fields.location.value = record.location || '';
+  fields.jobUrl.value = record.job_url || '';
+  fields.jobDescription.value = record.job_description || '';
+}
+
 async function loadSettings() {
   settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
-  if (!fields.cvUsed.value.trim()) {
-    fields.cvUsed.value = settings.defaultCvText || '';
-  }
 }
 
 async function getActiveTab() {
@@ -66,6 +68,15 @@ function appendCaptureNote(existingNotes, sourceUrl) {
 
 function scrapeJobPosting() {
   const clean = (value) => (value ? value.replace(/\s+/g, ' ').trim() : '');
+  const cleanTitle = (value) => {
+    if (!value) {
+      return '';
+    }
+    return clean(value)
+      .replace(/\s+\|\s+(LinkedIn|Indeed|Glassdoor|Greenhouse|Lever|Workday)$/i, '')
+      .replace(/\s+-\s+(LinkedIn|Indeed|Glassdoor|Greenhouse|Lever|Workday)$/i, '')
+      .replace(/\s+at\s+.+$/i, (match) => match.toLowerCase().includes(' at ') ? '' : match);
+  };
   const textFromSelectors = (selectors) => {
     for (const selector of selectors) {
       const node = document.querySelector(selector);
@@ -113,7 +124,7 @@ function scrapeJobPosting() {
           location = clean([address.addressLocality, address.addressRegion, address.addressCountry].filter(Boolean).join(', '));
         }
         return {
-          title: clean(posting.title),
+          title: cleanTitle(posting.title),
           company: clean(posting.hiringOrganization?.name),
           location,
           description: clean(posting.description ? posting.description.replace(/<[^>]+>/g, ' ') : '')
@@ -135,7 +146,7 @@ function scrapeJobPosting() {
     '.topcard__title',
     '.jobsearch-JobInfoHeader-title',
     '[class*="job-title"]'
-  ]) || clean(document.title.split(/\s[\-|\|—–]\s/)[0]);
+  ]) || cleanTitle(document.title.split(/\s(?:-|—|–|\|)\s/)[0]);
 
   const company = jsonLd?.company || textFromSelectors([
     '[data-testid="company-name"]',
@@ -177,6 +188,35 @@ function scrapeJobPosting() {
   };
 }
 
+async function findApplicationByUrl(jobUrl) {
+  if (!jobUrl) {
+    return null;
+  }
+
+  const url = new URL(`${cleanBaseUrl(settings.backendBaseUrl)}/applications`);
+  url.searchParams.set('job_url', jobUrl);
+  url.searchParams.set('limit', '1');
+
+  const response = await fetch(url.toString());
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'Could not look up saved jobs in Jobby.');
+  }
+
+  const summary = data.items?.[0];
+  if (!summary?.id) {
+    return null;
+  }
+
+  const detailResponse = await fetch(`${cleanBaseUrl(settings.backendBaseUrl)}/applications/${summary.id}`);
+  const detail = await detailResponse.json().catch(() => ({}));
+  if (!detailResponse.ok) {
+    throw new Error(detail.detail || 'Could not load saved job details from Jobby.');
+  }
+
+  return detail;
+}
+
 async function refillFromPage() {
   setBusy(true);
   setStatus('Scanning current page...');
@@ -187,15 +227,29 @@ async function refillFromPage() {
       func: scrapeJobPosting
     });
 
-    fields.jobTitle.value = result?.title || '';
-    fields.companyName.value = result?.company || '';
-    fields.location.value = result?.location || '';
-    fields.jobUrl.value = result?.url || tab.url || '';
-    fields.jobDescription.value = result?.description || '';
-    if (!fields.notes.value.trim()) {
-      fields.notes.value = appendCaptureNote('', result?.url || tab.url || '');
+    const scraped = {
+      title: result?.title || '',
+      company: result?.company || '',
+      location: result?.location || '',
+      url: result?.url || tab.url || '',
+      description: result?.description || ''
+    };
+
+    fields.jobTitle.value = scraped.title;
+    fields.companyName.value = scraped.company;
+    fields.location.value = scraped.location;
+    fields.jobUrl.value = scraped.url;
+    fields.jobDescription.value = scraped.description;
+
+    const existing = await findApplicationByUrl(scraped.url);
+    if (existing) {
+      currentApplicationId = existing.id;
+      populateFieldsFromRecord(existing);
+      setStatus('Loaded saved job from Jobby.', 'success');
+    } else {
+      currentApplicationId = null;
+      setStatus('Page details captured.', 'success');
     }
-    setStatus('Page details captured.', 'success');
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'Could not scrape this page.', 'error');
   } finally {
@@ -209,8 +263,8 @@ function buildPayload() {
   const location = fields.location.value.trim() || null;
   const jobUrl = fields.jobUrl.value.trim() || null;
   const jobDescription = fields.jobDescription.value.trim();
-  const notes = appendCaptureNote(fields.notes.value, jobUrl || '');
-  const cvUsed = fields.cvUsed.value.trim();
+  const notes = appendCaptureNote('', jobUrl || '');
+  const cvUsed = (settings.defaultCvText || '').trim();
 
   if (!title || !company) {
     throw new Error('Job title and company are required.');
@@ -245,6 +299,19 @@ async function createApplication(payload) {
   return data;
 }
 
+async function updateApplication(applicationId, payload) {
+  const response = await fetch(`${cleanBaseUrl(settings.backendBaseUrl)}/applications/${applicationId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'Could not update application in Jobby.');
+  }
+  return data;
+}
+
 async function triggerGeneration(applicationId) {
   const response = await fetch(`${cleanBaseUrl(settings.backendBaseUrl)}/applications/${applicationId}/generate`, {
     method: 'POST'
@@ -261,7 +328,11 @@ async function saveDraft(shouldGenerate) {
   setStatus(shouldGenerate ? 'Saving draft and generating assets...' : 'Saving draft to Jobby...');
   try {
     const payload = buildPayload();
-    const application = await createApplication(payload);
+    const application = currentApplicationId
+      ? await updateApplication(currentApplicationId, payload)
+      : await createApplication(payload);
+    currentApplicationId = application.id;
+    populateFieldsFromRecord(application);
     if (shouldGenerate) {
       await triggerGeneration(application.id);
       setStatus('Saved and generated successfully.', 'success');
@@ -275,18 +346,12 @@ async function saveDraft(shouldGenerate) {
   }
 }
 
-async function openDashboard() {
-  await chrome.tabs.create({ url: settings.dashboardUrl || DEFAULT_SETTINGS.dashboardUrl });
-}
-
 form.addEventListener('submit', (event) => {
   event.preventDefault();
 });
 refillBtn.addEventListener('click', refillFromPage);
 saveBtn.addEventListener('click', () => saveDraft(false));
 saveGenerateBtn.addEventListener('click', () => saveDraft(true));
-dashboardBtn.addEventListener('click', openDashboard);
-optionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();
