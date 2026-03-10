@@ -7,11 +7,11 @@ export default function ExtensionCard() {
       <p className="eyebrow">Capture Layer</p>
       <h2>Chrome Extension</h2>
       <p>
-        Save jobs straight from job boards into Jobby. The extension flow is planned next, and this
-        dashboard card is the install handoff for that future release.
+        Save jobs straight from job boards into Jobby. The local MVP now lives in the repo as an
+        unpacked Chrome extension with scraping, draft creation, and save-plus-generate support.
       </p>
-      <LinkButton href="https://github.com" variant="secondary">
-        Download Coming Soon
+      <LinkButton href="https://github.com/Dimi20cen/Jobby/tree/main/extension" variant="secondary">
+        Open Extension Files
       </LinkButton>
     </Card>
   );

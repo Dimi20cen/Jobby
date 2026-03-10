@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jobby Capture</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup-shell">
+    <header class="popup-header">
+      <p class="eyebrow">Jobby</p>
+      <h1>Capture job posting</h1>
+      <p class="subtitle">Review the scraped details, then save a draft application into your dashboard.</p>
+    </header>
+
+    <form id="captureForm" class="form-stack">
+      <label class="field">
+        <span>Job title</span>
+        <input id="jobTitle" type="text" required>
+      </label>
+
+      <label class="field">
+        <span>Company</span>
+        <input id="companyName" type="text" required>
+      </label>
+
+      <label class="field">
+        <span>Location</span>
+        <input id="location" type="text">
+      </label>
+
+      <label class="field">
+        <span>Job URL</span>
+        <input id="jobUrl" type="url">
+      </label>
+
+      <label class="field">
+        <span>Job description</span>
+        <textarea id="jobDescription" rows="8"></textarea>
+      </label>
+
+      <label class="field">
+        <span>Notes</span>
+        <textarea id="notes" rows="3" placeholder="Optional notes for follow-up, recruiter context, or source."></textarea>
+      </label>
+
+      <label class="field">
+        <span>CV used</span>
+        <textarea id="cvUsed" rows="6" placeholder="Stored default CV appears here. You can edit it before saving."></textarea>
+      </label>
+
+      <div class="button-row">
+        <button type="button" id="refillBtn" class="secondary">Refill from page</button>
+        <button type="button" id="saveBtn" class="primary">Save draft</button>
+      </div>
+
+      <div class="button-row compact">
+        <button type="button" id="saveGenerateBtn" class="ghost">Save + generate</button>
+        <button type="button" id="dashboardBtn" class="ghost">Open dashboard</button>
+        <button type="button" id="optionsBtn" class="ghost">Options</button>
+      </div>
+    </form>
+
+    <p id="status" class="status" aria-live="polite"></p>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

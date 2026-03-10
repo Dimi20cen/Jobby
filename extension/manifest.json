@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Jobby Capture",
+  "version": "0.1.0",
+  "description": "Capture job postings from the current tab and save them into Jobby.",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "http://127.0.0.1:8000/*",
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*"
+  ],
+  "action": {
+    "default_title": "Jobby Capture",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html"
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jobby Capture Options</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    body {
+      width: auto;
+      min-height: 100vh;
+      display: grid;
+      place-items: start center;
+      padding: 24px;
+    }
+
+    .options-card {
+      width: min(720px, 100%);
+      background: rgba(255, 253, 249, 0.92);
+      border: 1px solid #d8cfc0;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 44px rgba(31, 27, 22, 0.08);
+    }
+  </style>
+</head>
+<body>
+  <main class="options-card">
+    <header class="popup-header">
+      <p class="eyebrow">Jobby</p>
+      <h1>Capture extension settings</h1>
+      <p class="subtitle">Point the extension at your local Jobby instance and keep a reusable CV on hand for quick saves.</p>
+    </header>
+
+    <form id="optionsForm" class="form-stack">
+      <label class="field">
+        <span>Backend API URL</span>
+        <input id="backendBaseUrl" type="url" placeholder="http://localhost:8000">
+      </label>
+
+      <label class="field">
+        <span>Dashboard URL</span>
+        <input id="dashboardUrl" type="url" placeholder="http://localhost:3000">
+      </label>
+
+      <label class="field">
+        <span>Default CV text</span>
+        <textarea id="defaultCvText" rows="14" placeholder="Paste your reusable CV base here."></textarea>
+      </label>
+
+      <div class="button-row">
+        <button id="saveOptionsBtn" type="submit" class="primary">Save settings</button>
+        <button id="resetOptionsBtn" type="button" class="secondary">Reset defaults</button>
+      </div>
+    </form>
+
+    <p id="optionsStatus" class="status" aria-live="polite"></p>
+  </main>
+
+  <script src="options.js"></script>
+</body>
+</html>

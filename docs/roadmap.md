@@ -20,6 +20,11 @@ Likely work:
 - extension manifest and popup
 - content script for supported job boards
 - API flow to create draft applications from scraped metadata
+- local settings for backend URL and reusable CV text
+
+Status:
+- basic Chrome extension MVP now exists under `extension/`
+- next improvements should focus on better site-specific scraping and a richer handoff into the application detail page
 
 ### Gmail integration
 Goal:

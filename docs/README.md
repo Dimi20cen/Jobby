@@ -6,6 +6,7 @@ Developer documentation for Jobby.
 - [Architecture](./architecture.md)
 - [Backend API](./backend-api.md)
 - [Data Model](./data-model.md)
+- [Extension](./extension.md)
 - [Frontend](./frontend.md)
 - [Local Development](./local-development.md)
 - [Roadmap](./roadmap.md)
