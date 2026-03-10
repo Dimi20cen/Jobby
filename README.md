@@ -28,10 +28,10 @@ The current MVP includes:
 - dashboard home page
 - application detail editor
 - AI generation inside an application record
+- Chrome extension MVP for job-board capture
 - local-first Docker setup
 
 Planned next:
-- browser extension capture flow
 - Gmail integration for application-related emails
 - better retrieval and application intelligence
 
@@ -44,6 +44,16 @@ docker compose -f infra/docker-compose.yml --env-file .env up --build
 Then open:
 - `http://localhost:3000`
 
+## Better Dev Loop
+For everyday development, use the hybrid flow:
+
+```bash
+make install
+make dev
+```
+
+That runs Postgres in Docker while the backend and frontend reload locally.
+
 ## Screenshots
 Screenshots and demo assets can live here as the UI matures.
 
@@ -54,6 +64,7 @@ That includes:
 - architecture notes
 - backend API documentation
 - data model documentation
+- extension notes
 - frontend structure notes
 - local development details
 - roadmap notes

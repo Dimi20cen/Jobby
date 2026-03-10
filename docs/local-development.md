@@ -21,6 +21,57 @@ Frontend:
 Backend:
 - `http://localhost:8000`
 
+## Recommended Dev Loop
+
+For day-to-day development, use a hybrid setup:
+- Postgres in Docker
+- backend locally with auto-reload
+- frontend locally with Next.js dev mode
+- Chrome extension loaded unpacked
+
+This is much faster than rebuilding the full Docker stack after each change.
+
+### Fast path
+
+Install dependencies once:
+
+```bash
+make install
+```
+
+Then run everything with one command:
+
+```bash
+make dev
+```
+
+That command:
+- starts Postgres in Docker
+- starts FastAPI locally with `--reload`
+- starts Next.js locally with hot reload
+- keeps running until you stop it with `Ctrl+C`
+
+So no, you should not need to rerun it after every code change. Backend and frontend changes reload automatically.
+
+### Multi-terminal option
+If you prefer separate logs, use:
+
+```bash
+make dev-split
+```
+
+Then run the three commands it prints.
+
+If you want a Postgres-only Compose file instead of the main stack, use:
+
+```bash
+docker compose -f infra/docker-compose.dev.yml --env-file .env up
+```
+
+The extension should point to:
+- backend: `http://localhost:8000`
+- dashboard: `http://localhost:3000`
+
 ## Environment Variables
 
 ### Database
@@ -63,29 +114,32 @@ FALLBACK_MODELS=models/gemini-2.5-flash-lite,models/gemini-2.0-flash-lite
 
 ### Backend tests
 ```bash
-cd backend
-pytest -q tests
+make test-backend
 ```
 
 ### Frontend build
 ```bash
-cd frontend
-npm install
-npm run build
+make build-frontend
 ```
 
 ### Frontend local dev
 ```bash
-cd frontend
-npm install
-npm run dev
+make dev-frontend
 ```
 
 ### Backend local dev
 ```bash
-cd backend
-uv pip install --system .
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+make dev-backend
+```
+
+### Helpful shortcuts
+```bash
+make help
+make dev
+make dev-split
+make up
+make down
+make logs
 ```
 
 ## Notes About Persistence
