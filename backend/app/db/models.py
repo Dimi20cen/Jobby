@@ -22,6 +22,8 @@ class Application(Base):
     job_description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     cv_used: Mapped[str] = mapped_column(Text, nullable=False, default="")
     notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Keep writing an empty value for the legacy SQLite column so older local DBs still accept inserts.
+    legacy_tailored_bullets: Mapped[list[str]] = mapped_column("tailored_bullets", JSON, nullable=False, default=list)
     cover_letter: Mapped[str] = mapped_column(Text, nullable=False, default="")
     interview_questions: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     used_model: Mapped[str | None] = mapped_column(String(255), nullable=True)
