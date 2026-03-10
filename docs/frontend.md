@@ -1,5 +1,16 @@
 # Frontend
 
+Read when:
+- you are changing dashboard, application detail, or frontend API wiring
+- you need to know which routes and components own which parts of the UI
+- you are deciding whether a behavior belongs in the web app or the extension
+
+Related docs:
+- [Architecture](./architecture.md)
+- [Backend API](./backend-api.md)
+- [Extension](./extension.md)
+- [Local Development](./local-development.md)
+
 ## Overview
 The frontend is a Next.js App Router project in `frontend/`.
 

@@ -1,5 +1,17 @@
 # Architecture
 
+Read when:
+- you need the big-picture system flow before editing code
+- you are deciding whether a change belongs in frontend, backend, database, or extension
+- you are onboarding and want the shortest path to understanding the app shape
+
+Related docs:
+- [Data Model](./data-model.md)
+- [Backend API](./backend-api.md)
+- [Frontend](./frontend.md)
+- [Extension](./extension.md)
+- [Local Development](./local-development.md)
+
 ## Overview
 Jobby is a monorepo with a small full-stack architecture:
 

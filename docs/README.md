@@ -2,6 +2,11 @@
 
 Developer documentation for Jobby.
 
+Read when:
+- you are new to the repo and need a starting point
+- you want to find the right doc before changing frontend, backend, extension, or dev workflow
+- you need the recommended reading order for onboarding
+
 ## Contents
 - [Architecture](./architecture.md)
 - [Backend API](./backend-api.md)
@@ -28,3 +33,4 @@ If you are new to the codebase, start with:
 3. [Backend API](./backend-api.md)
 4. [Frontend](./frontend.md)
 5. [Local Development](./local-development.md)
+6. [Extension](./extension.md) if you are touching browser capture

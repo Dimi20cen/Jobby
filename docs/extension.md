@@ -1,5 +1,17 @@
 # Extension
 
+Read when:
+- you are changing popup capture UX or scraping behavior
+- you are debugging how the extension creates, updates, or generates applications
+- you need to understand how browser capture fits into the rest of Jobby
+
+Related docs:
+- [Architecture](./architecture.md)
+- [Backend API](./backend-api.md)
+- [Frontend](./frontend.md)
+- [Local Development](./local-development.md)
+- [Data Model](./data-model.md)
+
 ## Purpose
 The Chrome extension is the capture layer for Jobby.
 

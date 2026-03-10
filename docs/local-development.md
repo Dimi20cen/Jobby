@@ -1,5 +1,16 @@
 # Local Development
 
+Read when:
+- you are setting up the repo on a new machine
+- you want the fastest day-to-day dev loop
+- you are debugging environment, Docker, or provider configuration issues
+
+Related docs:
+- [Docs Index](./README.md)
+- [Architecture](./architecture.md)
+- [Extension](./extension.md)
+- [Backend API](./backend-api.md)
+
 ## Stack
 - frontend: Next.js 14 + TypeScript
 - backend: FastAPI + SQLAlchemy

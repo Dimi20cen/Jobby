@@ -1,5 +1,15 @@
 # Data Model
 
+Read when:
+- you are adding or changing application fields
+- you are planning schema evolution or future tables
+- you need to understand what data belongs on the `Application` record today
+
+Related docs:
+- [Architecture](./architecture.md)
+- [Backend API](./backend-api.md)
+- [Extension](./extension.md)
+
 ## Primary Entity
 The primary entity is `Application`.
 

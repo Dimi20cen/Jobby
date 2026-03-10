@@ -1,5 +1,16 @@
 # Backend API
 
+Read when:
+- you are changing request or response shapes
+- you are wiring frontend or extension behavior to backend endpoints
+- you are debugging CRUD, generation, or activity responses
+
+Related docs:
+- [Architecture](./architecture.md)
+- [Data Model](./data-model.md)
+- [Extension](./extension.md)
+- [Frontend](./frontend.md)
+
 ## Overview
 The backend is a FastAPI app defined in `backend/app/main.py` and `backend/app/api/routes.py`.
 
