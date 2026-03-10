@@ -1,13 +1,16 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
+import AIWorkspace from '@/components/AIWorkspace';
+import ApplicationActions from '@/components/ApplicationActions';
+import ApplicationFormFields from '@/components/ApplicationFormFields';
+import ApplicationHeader from '@/components/ApplicationHeader';
+import Card from '@/components/ui/Card';
 import { createApplication, deleteApplication, generateApplication, getApplication, updateApplication } from '@/lib/api';
 import {
   ApplicationDetail,
-  ApplicationStatus,
   CreateApplicationRequest,
   UpdateApplicationRequest
 } from '@/types';
@@ -31,8 +34,6 @@ const defaultForm: CreateApplicationRequest = {
   interview_questions: [],
   tailored_bullets: []
 };
-
-const statuses: ApplicationStatus[] = ['draft', 'applied', 'interview', 'offer', 'rejected', 'archived'];
 
 function normalize(detail: ApplicationDetail): CreateApplicationRequest {
   return {
@@ -65,13 +66,13 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
     if (!existingApplicationId || isNew) {
       return;
     }
-    const applicationId = existingApplicationId;
+    const stableApplicationId = existingApplicationId;
     let active = true;
     async function load(): Promise<void> {
       setLoading(true);
       setError(null);
       try {
-        const nextDetail = await getApplication(applicationId);
+        const nextDetail = await getApplication(stableApplicationId);
         if (!active) return;
         setDetail(nextDetail);
         setForm(normalize(nextDetail));
@@ -153,133 +154,43 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
   }
 
   if (loading) {
-    return <main><section className="panel"><p>Loading application...</p></section></main>;
+    return (
+      <main>
+        <Card>
+          <p>Loading application...</p>
+        </Card>
+      </main>
+    );
   }
 
   return (
     <main>
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Application Detail</p>
-          <h1>{isNew ? 'Create New Application' : form.job_title || 'Untitled role'}</h1>
-          <p className="muted">
-            {isNew ? 'Create the record first, then generate AI assets inside it.' : form.company_name || 'Company pending'}
-          </p>
-        </div>
-        <Link className="button-link secondary-link" href="/">
-          Back to Dashboard
-        </Link>
-      </div>
-      {error ? <p className="panel error">{error}</p> : null}
+      <ApplicationHeader
+        title={isNew ? 'Create New Application' : form.job_title || 'Untitled role'}
+        subtitle={
+          isNew
+            ? 'Create the record first, then generate AI assets inside it.'
+            : form.company_name || 'Company pending'
+        }
+      />
+      {error ? (
+        <Card>
+          <p className="error">{error}</p>
+        </Card>
+      ) : null}
       <div className="editor-layout">
-        <form className="panel" onSubmit={handleSubmit}>
-          <div className="form-grid">
-            <label>
-              Company
-              <input value={form.company_name} onChange={(e) => setField('company_name', e.target.value)} required />
-            </label>
-            <label>
-              Job Title
-              <input value={form.job_title} onChange={(e) => setField('job_title', e.target.value)} required />
-            </label>
-            <label>
-              Location
-              <input value={form.location || ''} onChange={(e) => setField('location', e.target.value)} />
-            </label>
-            <label>
-              Status
-              <select value={form.status} onChange={(e) => setField('status', e.target.value as ApplicationStatus)}>
-                {statuses.map((statusValue) => (
-                  <option key={statusValue} value={statusValue}>
-                    {statusValue}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Applied Date
-              <input
-                type="date"
-                value={form.applied_date || ''}
-                onChange={(e) => setField('applied_date', e.target.value || null)}
-              />
-            </label>
-            <label>
-              Job URL
-              <input value={form.job_url || ''} onChange={(e) => setField('job_url', e.target.value)} />
-            </label>
-          </div>
+        <Card as="form" onSubmit={handleSubmit}>
+          <ApplicationFormFields form={form} onFieldChange={setField} />
+          <ApplicationActions
+            isNew={isNew}
+            saving={saving}
+            generating={generating}
+            onGenerate={handleGenerate}
+            onDelete={handleDelete}
+          />
+        </Card>
 
-          <label>
-            Job Description
-            <textarea value={form.job_description} onChange={(e) => setField('job_description', e.target.value)} />
-          </label>
-          <label>
-            CV Used
-            <textarea value={form.cv_used} onChange={(e) => setField('cv_used', e.target.value)} />
-          </label>
-          <label>
-            Notes
-            <textarea value={form.notes} onChange={(e) => setField('notes', e.target.value)} />
-          </label>
-          <div className="action-row">
-            <button type="submit" disabled={saving}>
-              {saving ? 'Saving...' : isNew ? 'Create Application' : 'Save Changes'}
-            </button>
-            {!isNew ? (
-              <button type="button" className="ghost-button" disabled={generating} onClick={handleGenerate}>
-                {generating ? 'Generating...' : 'Generate AI Assets'}
-              </button>
-            ) : null}
-            {!isNew ? (
-              <button type="button" className="ghost-button danger-button" disabled={saving} onClick={handleDelete}>
-                Delete Application
-              </button>
-            ) : null}
-          </div>
-        </form>
-
-        <section className="panel">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">AI Workspace</p>
-              <h2>Outputs and Evaluation</h2>
-            </div>
-            {detail?.used_model ? <p className="muted">Model: {detail.used_model}</p> : null}
-          </div>
-          <p>
-            <strong>Relevance score:</strong> {detail?.relevance_score ?? 'Not generated'}
-          </p>
-          <p>
-            <strong>JD coverage:</strong> {detail?.jd_coverage.join(', ') || 'Not generated'}
-          </p>
-          <p>
-            <strong>Risk flags:</strong> {detail?.risk_flags.join(', ') || 'Not generated'}
-          </p>
-          <label>
-            Tailored Bullets
-            <textarea
-              value={form.tailored_bullets.join('\n')}
-              onChange={(e) => setField('tailored_bullets', e.target.value.split('\n').map((line) => line.trim()).filter(Boolean))}
-            />
-          </label>
-          <label>
-            Cover Letter
-            <textarea value={form.cover_letter} onChange={(e) => setField('cover_letter', e.target.value)} />
-          </label>
-          <label>
-            Interview Questions
-            <textarea
-              value={form.interview_questions.join('\n')}
-              onChange={(e) =>
-                setField(
-                  'interview_questions',
-                  e.target.value.split('\n').map((line) => line.trim()).filter(Boolean)
-                )
-              }
-            />
-          </label>
-        </section>
+        <AIWorkspace detail={detail} form={form} onFieldChange={setField} />
       </div>
     </main>
   );

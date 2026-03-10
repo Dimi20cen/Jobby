@@ -1,11 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import ActivityGrid from '@/components/ActivityGrid';
 import ApplicationTable from '@/components/ApplicationTable';
 import ExtensionCard from '@/components/ExtensionCard';
+import Card from '@/components/ui/Card';
+import { LinkButton } from '@/components/ui/Button';
+import { SelectField } from '@/components/ui/Field';
 import { getActivity, getApplications } from '@/lib/api';
 import { ApplicationActivityPoint, ApplicationSummary, ApplicationStatus } from '@/types';
 
@@ -64,7 +66,7 @@ export default function HomePage() {
 
   return (
     <main>
-      <section className="hero panel">
+      <Card className="hero">
         <div>
           <p className="eyebrow">Job Application Manager</p>
           <h1>Track every application, edit your materials, and keep momentum visible.</h1>
@@ -74,9 +76,9 @@ export default function HomePage() {
           </p>
         </div>
         <div className="hero-actions">
-          <Link className="button-link" href="/applications/new">
+          <LinkButton href="/applications/new">
             Create Application
-          </Link>
+          </LinkButton>
           <span className="metric-card">
             <strong>{totals.total}</strong>
             <span>Total tracked</span>
@@ -90,23 +92,27 @@ export default function HomePage() {
             <span>Active pipeline</span>
           </span>
         </div>
-      </section>
+      </Card>
 
       <div className="toolbar">
-        <label>
-          Status filter
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as '' | ApplicationStatus)}>
-            {statusFilters.map((filter) => (
-              <option key={filter.label} value={filter.value}>
-                {filter.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SelectField
+          label="Status filter"
+          value={statusFilter}
+          onChange={(value) => setStatusFilter(value as '' | ApplicationStatus)}
+          options={statusFilters.map((filter) => ({ label: filter.label, value: filter.value }))}
+        />
       </div>
 
-      {error ? <p className="panel error">{error}</p> : null}
-      {loading ? <section className="panel"><p>Loading dashboard...</p></section> : null}
+      {error ? (
+        <Card>
+          <p className="error">{error}</p>
+        </Card>
+      ) : null}
+      {loading ? (
+        <Card>
+          <p>Loading dashboard...</p>
+        </Card>
+      ) : null}
       {!loading ? <ApplicationTable items={items} onDeleted={(id) => setItems((current) => current.filter((item) => item.id !== id))} /> : null}
 
       <div className="dashboard-grid">
