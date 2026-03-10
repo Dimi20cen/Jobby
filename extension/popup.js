@@ -117,6 +117,14 @@ function appendCaptureNote(existingNotes, sourceUrl) {
   return [trimmed, sourceLine, stamped].filter(Boolean).join('\n');
 }
 
+function todayDateString() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function scrapeJobPosting() {
   const hostname = window.location.hostname.toLowerCase();
   const clean = (value) => (value ? value.replace(/\s+/g, ' ').trim() : '');
@@ -803,8 +811,8 @@ function buildPayload() {
     company_name: company,
     job_title: title,
     location,
-    status: 'draft',
-    applied_date: null,
+    status: 'applied',
+    applied_date: todayDateString(),
     job_url: jobUrl,
     job_description: jobDescription,
     cv_used: cvUsed,

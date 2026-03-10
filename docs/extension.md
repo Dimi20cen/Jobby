@@ -18,7 +18,7 @@ The Chrome extension is the capture layer for Jobby.
 It lets a user:
 - scrape the current job page
 - review the captured fields in a popup
-- save a draft application into Jobby
+- save an applied application into Jobby
 - optionally trigger AI generation right after saving
 
 The extension lives in `extension/`.
@@ -40,7 +40,7 @@ Flow:
 3. The injected scraper extracts title, company, location, URL, and description.
 4. The popup checks Jobby for an existing application with the same `job_url`.
 5. If found, the popup rehydrates from the saved record; otherwise it keeps the scraped values.
-6. The user saves a draft through `POST /applications` or updates the existing record with `PUT /applications/{id}`.
+6. The user saves the job through `POST /applications` or updates the existing record with `PUT /applications/{id}`; extension saves mark the record as `applied` with today's date.
 7. Optional: the popup calls `POST /applications/{id}/generate`.
 
 ## Stored Settings
