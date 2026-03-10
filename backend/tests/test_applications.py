@@ -40,7 +40,6 @@ def test_create_list_and_activity() -> None:
                 notes="Strong fit for product engineering.",
                 cover_letter="",
                 interview_questions=[],
-                tailored_bullets=[],
             ),
             db,
         )
@@ -70,7 +69,6 @@ def test_list_applications_can_filter_by_job_url() -> None:
                 notes="",
                 cover_letter="",
                 interview_questions=[],
-                tailored_bullets=[],
             ),
             db,
         )
@@ -87,7 +85,6 @@ def test_list_applications_can_filter_by_job_url() -> None:
                 notes="",
                 cover_letter="",
                 interview_questions=[],
-                tailored_bullets=[],
             ),
             db,
         )
@@ -118,7 +115,6 @@ def test_generate_for_application(monkeypatch) -> None:
                 notes="",
                 cover_letter="",
                 interview_questions=[],
-                tailored_bullets=[],
             ),
             db,
         )
@@ -127,7 +123,6 @@ def test_generate_for_application(monkeypatch) -> None:
             routes,
             "generate_application",
             lambda job_description, cv_text: (
-                ["Impact bullet"],
                 "Tailored cover letter body",
                 ["Question 1", "Question 2"],
                 82,
@@ -158,7 +153,6 @@ def test_update_requires_applied_date_for_applied_status() -> None:
                 notes="",
                 cover_letter="",
                 interview_questions=[],
-                tailored_bullets=[],
             ),
             db,
         )

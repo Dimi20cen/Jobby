@@ -40,7 +40,6 @@ This is the central product record and should remain the anchor for future featu
 - `notes`
 
 ### AI-generated content
-- `tailored_bullets`
 - `cover_letter`
 - `interview_questions`
 

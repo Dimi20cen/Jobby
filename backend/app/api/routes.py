@@ -50,7 +50,6 @@ def _to_detail(application: Application) -> ApplicationDetail:
         notes=application.notes,
         cover_letter=application.cover_letter,
         interview_questions=_normalize_list(application.interview_questions),
-        tailored_bullets=_normalize_list(application.tailored_bullets),
         used_model=application.used_model,
         relevance_score=application.relevance_score,
         jd_coverage=_normalize_list(application.jd_coverage),
@@ -132,7 +131,6 @@ def create_application(
         notes=payload.notes,
         cover_letter=payload.cover_letter,
         interview_questions=payload.interview_questions,
-        tailored_bullets=payload.tailored_bullets,
     )
     db.add(application)
     db.commit()
@@ -184,7 +182,6 @@ def generate_for_application(
 
     try:
         (
-            bullets,
             cover_letter,
             interview_questions,
             relevance_score,
@@ -198,7 +195,6 @@ def generate_for_application(
     except LLMServiceError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    application.tailored_bullets = bullets
     application.cover_letter = cover_letter
     application.interview_questions = interview_questions
     application.relevance_score = relevance_score

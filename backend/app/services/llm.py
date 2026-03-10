@@ -36,7 +36,7 @@ def _model_chain() -> list[str]:
 
 def generate_application(
     job_description: str, cv_text: str
-) -> tuple[list[str], str, list[str], int, list[str], list[str], str]:
+) -> tuple[str, list[str], int, list[str], list[str], str]:
     api_key = (
         os.getenv("OPENROUTER_API_KEY")
         or os.getenv("OPENAI_API_KEY")
@@ -94,7 +94,6 @@ def generate_application(
     content = (response.choices[0].message.content or "").strip()
     data = _extract_json(content)
 
-    bullets = data.get("tailored_bullets")
     cover = data.get("cover_letter")
     interview_questions = data.get("interview_questions")
     relevance_score = data.get("relevance_score")
@@ -106,8 +105,6 @@ def generate_application(
         jd_coverage = evaluation.get("jd_coverage", jd_coverage)
         risk_flags = evaluation.get("risk_flags", risk_flags)
 
-    if not isinstance(bullets, list) or not bullets or not all(isinstance(b, str) for b in bullets):
-        raise LLMServiceError("LLM output missing tailored_bullets")
     if not isinstance(cover, str) or len(cover.strip()) < 30:
         raise LLMServiceError("LLM output missing cover_letter")
     if not isinstance(interview_questions, list) or not interview_questions:
@@ -120,7 +117,6 @@ def generate_application(
         raise LLMServiceError("LLM output missing risk_flags")
 
     return (
-        bullets[:8],
         cover.strip(),
         [q for q in interview_questions if isinstance(q, str)][:10],
         max(0, min(100, relevance_score)),

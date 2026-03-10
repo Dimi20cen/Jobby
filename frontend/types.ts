@@ -24,7 +24,6 @@ export type ApplicationDetail = ApplicationSummary & {
   notes: string;
   cover_letter: string;
   interview_questions: string[];
-  tailored_bullets: string[];
   used_model: string | null;
   relevance_score: number | null;
   jd_coverage: string[];
@@ -48,7 +47,6 @@ export type CreateApplicationRequest = {
   notes: string;
   cover_letter: string;
   interview_questions: string[];
-  tailored_bullets: string[];
 };
 
 export type UpdateApplicationRequest = Partial<CreateApplicationRequest>;

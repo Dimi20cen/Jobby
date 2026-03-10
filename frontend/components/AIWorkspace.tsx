@@ -5,45 +5,50 @@ import { ApplicationDetail, CreateApplicationRequest } from '@/types';
 type Props = {
   detail: ApplicationDetail | null;
   form: CreateApplicationRequest;
+  generating: boolean;
   onFieldChange: <K extends keyof CreateApplicationRequest>(key: K, value: CreateApplicationRequest[K]) => void;
 };
 
-export default function AIWorkspace({ detail, form, onFieldChange }: Props) {
+function joinItems(items: string[]): string {
+  return items.length > 0 ? items.join(', ') : 'Not generated';
+}
+
+export default function AIWorkspace({ detail, form, generating, onFieldChange }: Props) {
+  const hasOutputs = Boolean(form.cover_letter || form.interview_questions.length);
+
   return (
-    <Card>
+    <Card className="ai-panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">AI Workspace</p>
-          <h2>Outputs and Evaluation</h2>
+          <h2>AI outputs</h2>
         </div>
-        {detail?.used_model ? <p className="muted">Model: {detail.used_model}</p> : null}
+        <p className="muted">{detail?.used_model ? `Model: ${detail.used_model}` : 'Generate when the record is ready.'}</p>
       </div>
-      <p>
-        <strong>Relevance score:</strong> {detail?.relevance_score ?? 'Not generated'}
-      </p>
-      <p>
-        <strong>JD coverage:</strong> {detail?.jd_coverage.join(', ') || 'Not generated'}
-      </p>
-      <p>
-        <strong>Risk flags:</strong> {detail?.risk_flags.join(', ') || 'Not generated'}
-      </p>
-      <TextareaField
-        label="Tailored Bullets"
-        value={form.tailored_bullets.join('\n')}
-        onChange={(value) =>
-          onFieldChange(
-            'tailored_bullets',
-            value
-              .split('\n')
-              .map((line) => line.trim())
-              .filter(Boolean)
-          )
-        }
-      />
+      <div className="ai-intro compact-copy">
+        {!hasOutputs && !generating ? (
+          <p className="ai-empty">No AI outputs yet.</p>
+        ) : null}
+        {generating ? <p className="ai-empty">Generation is running. Updated materials will appear here when ready.</p> : null}
+      </div>
+      <div className="ai-metrics">
+        <div className="ai-metric-card">
+          <span className="ai-metric-label">Relevance</span>
+          <strong>{detail?.relevance_score ?? 'Not generated'}</strong>
+        </div>
+        <div className="ai-metric-card">
+          <span className="ai-metric-label">JD coverage</span>
+          <strong>{joinItems(detail?.jd_coverage || [])}</strong>
+        </div>
+        <div className="ai-metric-card">
+          <span className="ai-metric-label">Risk flags</span>
+          <strong>{joinItems(detail?.risk_flags || [])}</strong>
+        </div>
+      </div>
       <TextareaField
         label="Cover Letter"
         value={form.cover_letter}
         onChange={(value) => onFieldChange('cover_letter', value)}
+        rows={12}
       />
       <TextareaField
         label="Interview Questions"
@@ -57,6 +62,7 @@ export default function AIWorkspace({ detail, form, onFieldChange }: Props) {
               .filter(Boolean)
           )
         }
+        rows={8}
       />
     </Card>
   );

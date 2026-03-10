@@ -23,7 +23,6 @@ class ApplicationBase(BaseModel):
     notes: str = ""
     cover_letter: str = ""
     interview_questions: list[str] = Field(default_factory=list)
-    tailored_bullets: list[str] = Field(default_factory=list)
 
 
 class CreateApplicationRequest(ApplicationBase):
@@ -42,7 +41,6 @@ class UpdateApplicationRequest(BaseModel):
     notes: str | None = None
     cover_letter: str | None = None
     interview_questions: list[str] | None = None
-    tailored_bullets: list[str] | None = None
 
 
 class ApplicationSummary(BaseModel):
@@ -65,7 +63,6 @@ class ApplicationDetail(ApplicationSummary):
     notes: str
     cover_letter: str
     interview_questions: list[str]
-    tailored_bullets: list[str]
     used_model: str | None
     relevance_score: int | None
     jd_coverage: list[str]

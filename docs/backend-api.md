@@ -90,7 +90,6 @@ Expected request fields:
 - `notes`
 - `cover_letter`
 - `interview_questions`
-- `tailored_bullets`
 
 Returns the full application detail payload.
 
@@ -117,7 +116,6 @@ Validation:
 - `cv_used` must be at least 30 characters
 
 Generation writes back:
-- `tailored_bullets`
 - `cover_letter`
 - `interview_questions`
 - `used_model`

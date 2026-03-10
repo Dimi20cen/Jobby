@@ -31,8 +31,7 @@ const defaultForm: CreateApplicationRequest = {
   cv_used: '',
   notes: '',
   cover_letter: '',
-  interview_questions: [],
-  tailored_bullets: []
+  interview_questions: []
 };
 
 function normalize(detail: ApplicationDetail): CreateApplicationRequest {
@@ -47,8 +46,7 @@ function normalize(detail: ApplicationDetail): CreateApplicationRequest {
     cv_used: detail.cv_used,
     notes: detail.notes,
     cover_letter: detail.cover_letter,
-    interview_questions: detail.interview_questions,
-    tailored_bullets: detail.tailored_bullets
+    interview_questions: detail.interview_questions
   };
 }
 
@@ -61,6 +59,8 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState(JSON.stringify(defaultForm));
 
   useEffect(() => {
     if (!existingApplicationId || isNew) {
@@ -75,7 +75,9 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
         const nextDetail = await getApplication(stableApplicationId);
         if (!active) return;
         setDetail(nextDetail);
-        setForm(normalize(nextDetail));
+        const normalized = normalize(nextDetail);
+        setForm(normalized);
+        setLastSavedSnapshot(JSON.stringify(normalized));
       } catch (err) {
         if (!active) return;
         setError(err instanceof Error ? err.message : 'Could not load application');
@@ -95,10 +97,15 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  const isDirty = JSON.stringify(form) !== lastSavedSnapshot;
+  const canGenerate = Boolean(form.job_description.trim()) && !isNew;
+  const hasAiOutputs = Boolean(form.cover_letter || form.interview_questions.length);
+
   async function handleSubmit(event: FormEvent): Promise<void> {
     event.preventDefault();
     setSaving(true);
     setError(null);
+    setNotice(null);
     try {
       if (isNew) {
         const created = await createApplication(form);
@@ -112,7 +119,10 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
       const payload: UpdateApplicationRequest = { ...form };
       const updated = await updateApplication(existingApplicationId, payload);
       setDetail(updated);
-      setForm(normalize(updated));
+      const normalized = normalize(updated);
+      setForm(normalized);
+      setLastSavedSnapshot(JSON.stringify(normalized));
+      setNotice('Application saved.');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed');
@@ -125,10 +135,14 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
     if (!existingApplicationId) return;
     setGenerating(true);
     setError(null);
+    setNotice(null);
     try {
       const generated = await generateApplication(existingApplicationId);
       setDetail(generated);
-      setForm(normalize(generated));
+      const normalized = normalize(generated);
+      setForm(normalized);
+      setLastSavedSnapshot(JSON.stringify(normalized));
+      setNotice('AI materials generated.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
@@ -169,10 +183,18 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
         title={isNew ? 'Create New Application' : form.job_title || 'Untitled role'}
         subtitle={
           isNew
-            ? 'Create the record first, then generate AI assets inside it.'
+            ? 'Create the record, then generate materials when you are ready.'
             : form.company_name || 'Company pending'
         }
+        status={form.status}
+        hasAiOutputs={hasAiOutputs}
+        isDirty={isDirty}
       />
+      {notice ? (
+        <Card className="notice-panel">
+          <p>{notice}</p>
+        </Card>
+      ) : null}
       {error ? (
         <Card>
           <p className="error">{error}</p>
@@ -185,12 +207,14 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
             isNew={isNew}
             saving={saving}
             generating={generating}
+            canGenerate={canGenerate}
+            isDirty={isDirty}
             onGenerate={handleGenerate}
             onDelete={handleDelete}
           />
         </Card>
 
-        <AIWorkspace detail={detail} form={form} onFieldChange={setField} />
+        <AIWorkspace detail={detail} form={form} generating={generating} onFieldChange={setField} />
       </div>
     </main>
   );
