@@ -89,23 +89,21 @@ export default function ApplicationTable({ items, statusFilter, onStatusFilterCh
   return (
     <Card className="applications-panel">
       <div className="applications-toolbar">
-        <p className="applications-subtitle">Latest applications</p>
-        <div className="status-filter-row" role="tablist" aria-label="Filter applications by status">
-          {statusFilters.map((filter) => {
-            const isActive = statusFilter === filter.value;
-            return (
-              <button
-                key={filter.label}
-                type="button"
-                className={isActive ? 'status-chip is-active' : 'status-chip'}
-                aria-pressed={isActive}
-                onClick={() => onStatusFilterChange(filter.value)}
-              >
+        <label className="status-select-wrap">
+          <span className="sr-only">Filter applications by status</span>
+          <select
+            className="status-select"
+            aria-label="Filter applications by status"
+            value={statusFilter}
+            onChange={(event) => onStatusFilterChange(event.target.value as '' | ApplicationStatus)}
+          >
+            {statusFilters.map((filter) => (
+              <option key={filter.label} value={filter.value}>
                 {filter.label}
-              </button>
-            );
-          })}
-        </div>
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       {error ? <p className="error">{error}</p> : null}
       {latestItems.length === 0 ? (

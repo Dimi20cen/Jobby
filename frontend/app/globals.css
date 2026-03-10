@@ -253,36 +253,39 @@ button:disabled {
   margin-bottom: 10px;
 }
 
-.applications-subtitle {
+.status-select-wrap {
+  position: relative;
+}
+
+.status-select-wrap::after {
   color: var(--accent-deep);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  margin: 0;
-  text-transform: uppercase;
+  content: '▾';
+  pointer-events: none;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.status-filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.status-chip {
-  background: rgba(255, 247, 238, 0.9);
+.status-select {
+  appearance: none;
+  background: rgba(255, 250, 244, 0.96);
   border: 1px solid var(--border);
   border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
   color: var(--accent-deep);
-  font-size: 0.92rem;
+  cursor: pointer;
+  font-size: 0.9rem;
   font-weight: 700;
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 38px;
+  min-width: 104px;
+  padding: 0 36px 0 14px;
+  width: auto;
 }
 
-.status-chip.is-active {
-  background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
-  border-color: transparent;
-  color: white;
+.status-select:focus {
+  outline: 2px solid rgba(194, 65, 12, 0.2);
+  outline-offset: 2px;
 }
 
 .quiet-panel {
@@ -573,8 +576,7 @@ button:disabled {
   }
 
   .applications-toolbar {
-    align-items: center;
-    grid-template-columns: auto 1fr;
+    justify-content: end;
   }
 }
 
