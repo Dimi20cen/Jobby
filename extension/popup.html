@@ -9,6 +9,18 @@
 <body>
   <main class="popup-shell">
     <form id="captureForm" class="form-stack">
+      <div class="meta-row">
+        <div class="meta-group">
+          <span id="sourceChip" class="chip">Page</span>
+          <span id="stateChip" class="chip chip-muted">Unsaved</span>
+        </div>
+        <button type="button" id="deleteBtn" class="icon-button hidden" title="Delete job from Jobby" aria-label="Delete job from Jobby">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 7h2v7h-2v-7Zm4 0h2v7h-2v-7ZM7 10h2v7H7v-7Zm1 10h8a2 2 0 0 0 2-2V8H6v10a2 2 0 0 0 2 2Z"></path>
+          </svg>
+        </button>
+      </div>
+
       <label class="field">
         <span>Job Title</span>
         <input id="jobTitle" type="text" required>
@@ -32,11 +44,14 @@
       </label>
 
       <div class="button-row">
-        <button type="button" id="refillBtn" class="secondary">Refill</button>
+        <button type="button" id="refillBtn" class="secondary">Rescan Page</button>
         <button type="button" id="saveBtn" class="primary">Save Job</button>
       </div>
 
       <button type="button" id="saveGenerateBtn" class="generate">Generate Letter</button>
+      <div class="action-footer">
+        <a id="openJobLink" class="open-link hidden" href="#" target="_blank" rel="noreferrer">Open in Jobby</a>
+      </div>
     </form>
 
     <p id="status" class="status" aria-live="polite"></p>

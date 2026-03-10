@@ -34,6 +34,64 @@ body {
   gap: 10px;
 }
 
+.meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.meta-group {
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(33, 104, 105, 0.12);
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.chip-muted {
+  background: #ece6dc;
+  color: var(--muted);
+}
+
+.chip-success {
+  background: rgba(35, 105, 70, 0.14);
+  color: var(--success);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(141, 59, 47, 0.18);
+  border-radius: 999px;
+  background: rgba(141, 59, 47, 0.08);
+  color: var(--danger);
+}
+
+.icon-button svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.icon-button:hover {
+  background: rgba(141, 59, 47, 0.14);
+  border-color: rgba(141, 59, 47, 0.28);
+}
+
 .field {
   display: grid;
   gap: 4px;
@@ -128,22 +186,23 @@ button.ghost:hover {
 }
 
 button.generate {
-  background: #0da547;
-  color: white;
+  border: 1px solid rgba(35, 105, 70, 0.26);
+  background: rgba(35, 105, 70, 0.12);
+  color: var(--success);
 }
 
 button.generate:hover {
-  background: #0a8a3a;
+  background: rgba(35, 105, 70, 0.18);
 }
 
 button:disabled {
-  cursor: wait;
-  opacity: 0.7;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .status {
   min-height: 18px;
-  margin: 10px 2px 0;
+  margin: 8px 2px 0;
   color: var(--muted);
   text-align: center;
 }
@@ -154,4 +213,26 @@ button:disabled {
 
 .status.success {
   color: var(--success);
+}
+
+.action-footer {
+  display: flex;
+  justify-content: center;
+  min-height: 18px;
+}
+
+.open-link {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.open-link:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+.hidden {
+  display: none;
 }

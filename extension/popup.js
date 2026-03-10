@@ -9,6 +9,10 @@ const statusEl = document.getElementById('status');
 const refillBtn = document.getElementById('refillBtn');
 const saveBtn = document.getElementById('saveBtn');
 const saveGenerateBtn = document.getElementById('saveGenerateBtn');
+const stateChipEl = document.getElementById('stateChip');
+const sourceChipEl = document.getElementById('sourceChip');
+const openJobLinkEl = document.getElementById('openJobLink');
+const deleteBtn = document.getElementById('deleteBtn');
 
 const fields = {
   jobTitle: document.getElementById('jobTitle'),
@@ -20,6 +24,8 @@ const fields = {
 
 let settings = { ...DEFAULT_SETTINGS };
 let currentApplicationId = null;
+let popupState = 'unsaved';
+let currentSourceLabel = 'Page';
 
 function setStatus(message, tone = '') {
   statusEl.textContent = message;
@@ -27,13 +33,56 @@ function setStatus(message, tone = '') {
 }
 
 function setBusy(isBusy) {
-  [refillBtn, saveBtn, saveGenerateBtn].forEach((button) => {
-    button.disabled = isBusy;
-  });
+  refillBtn.disabled = isBusy;
+  saveBtn.disabled = isBusy;
+  saveGenerateBtn.disabled = isBusy || !currentApplicationId;
+  deleteBtn.disabled = isBusy || !currentApplicationId;
 }
 
 function cleanBaseUrl(url) {
   return url.replace(/\/+$/, '');
+}
+
+function deriveSourceLabel(url) {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    if (hostname.includes('linkedin')) {
+      return 'LinkedIn';
+    }
+    if (hostname.includes('indeed')) {
+      return 'Indeed';
+    }
+    return hostname || 'Page';
+  } catch (_error) {
+    return 'Page';
+  }
+}
+
+function updateUiState(nextState) {
+  popupState = nextState;
+
+  const stateMeta = {
+    unsaved: { label: 'Unsaved', chipClass: 'chip chip-muted' },
+    saved: { label: 'Saved', chipClass: 'chip chip-success' },
+    generated: { label: 'Generated', chipClass: 'chip chip-success' }
+  };
+
+  const activeState = stateMeta[nextState] || stateMeta.unsaved;
+  stateChipEl.textContent = activeState.label;
+  stateChipEl.className = activeState.chipClass;
+  sourceChipEl.textContent = currentSourceLabel;
+
+  const hasSavedRecord = Boolean(currentApplicationId);
+  saveBtn.textContent = hasSavedRecord ? 'Update Job' : 'Save Job';
+  saveGenerateBtn.disabled = !hasSavedRecord;
+  openJobLinkEl.classList.toggle('hidden', !hasSavedRecord);
+  deleteBtn.classList.toggle('hidden', !hasSavedRecord);
+
+  if (hasSavedRecord) {
+    openJobLinkEl.href = `${cleanBaseUrl(settings.dashboardUrl)}/applications/${currentApplicationId}`;
+  } else {
+    openJobLinkEl.href = '#';
+  }
 }
 
 function populateFieldsFromRecord(record) {
@@ -42,6 +91,8 @@ function populateFieldsFromRecord(record) {
   fields.location.value = record.location || '';
   fields.jobUrl.value = record.job_url || '';
   fields.jobDescription.value = record.job_description || '';
+  currentSourceLabel = deriveSourceLabel(record.job_url || '');
+  updateUiState(currentApplicationId ? popupState : 'unsaved');
 }
 
 async function loadSettings() {
@@ -708,6 +759,7 @@ async function refillFromPage() {
       url: result?.url || tab.url || '',
       description: result?.description || ''
     };
+    currentSourceLabel = deriveSourceLabel(scraped.url);
 
     fields.jobTitle.value = scraped.title;
     fields.companyName.value = scraped.company;
@@ -718,16 +770,19 @@ async function refillFromPage() {
     const existing = await findApplicationByUrl(scraped.url);
     if (existing) {
       currentApplicationId = existing.id;
+      popupState = existing.cover_letter ? 'generated' : 'saved';
       populateFieldsFromRecord(existing);
-      setStatus('Loaded saved job from Jobby.', 'success');
+      setStatus('');
     } else {
       currentApplicationId = null;
-      setStatus('Page details captured.', 'success');
+      updateUiState('unsaved');
+      setStatus('');
     }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'Could not scrape this page.', 'error');
   } finally {
     setBusy(false);
+    updateUiState(popupState);
   }
 }
 
@@ -786,6 +841,16 @@ async function updateApplication(applicationId, payload) {
   return data;
 }
 
+async function deleteApplication(applicationId) {
+  const response = await fetch(`${cleanBaseUrl(settings.backendBaseUrl)}/applications/${applicationId}`, {
+    method: 'DELETE'
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'Could not delete application from Jobby.');
+  }
+}
+
 async function triggerGeneration(applicationId) {
   const response = await fetch(`${cleanBaseUrl(settings.backendBaseUrl)}/applications/${applicationId}/generate`, {
     method: 'POST'
@@ -798,25 +863,61 @@ async function triggerGeneration(applicationId) {
 }
 
 async function saveDraft(shouldGenerate) {
+  if (shouldGenerate && !currentApplicationId) {
+    setStatus('Save the job first, then generate the letter.', 'error');
+    return;
+  }
+
   setBusy(true);
-  setStatus(shouldGenerate ? 'Saving draft and generating assets...' : 'Saving draft to Jobby...');
+  setStatus(shouldGenerate ? 'Generating assets from saved job...' : 'Saving draft to Jobby...');
   try {
-    const payload = buildPayload();
-    const application = currentApplicationId
-      ? await updateApplication(currentApplicationId, payload)
-      : await createApplication(payload);
-    currentApplicationId = application.id;
-    populateFieldsFromRecord(application);
     if (shouldGenerate) {
-      await triggerGeneration(application.id);
-      setStatus('Saved and generated successfully.', 'success');
+      const generatedApplication = await triggerGeneration(currentApplicationId);
+      currentApplicationId = generatedApplication.id;
+      popupState = 'generated';
+      populateFieldsFromRecord(generatedApplication);
+      setStatus('Letter generated successfully.', 'success');
     } else {
+      const payload = buildPayload();
+      const application = currentApplicationId
+        ? await updateApplication(currentApplicationId, payload)
+        : await createApplication(payload);
+      currentApplicationId = application.id;
+      popupState = 'saved';
+      populateFieldsFromRecord(application);
       setStatus('Draft saved to Jobby.', 'success');
     }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'Save failed.', 'error');
   } finally {
     setBusy(false);
+    updateUiState(popupState);
+  }
+}
+
+async function deleteCurrentApplication() {
+  if (!currentApplicationId) {
+    return;
+  }
+
+  const confirmed = window.confirm('Delete this saved job from Jobby?');
+  if (!confirmed) {
+    return;
+  }
+
+  setBusy(true);
+  setStatus('Deleting saved job...');
+  try {
+    await deleteApplication(currentApplicationId);
+    currentApplicationId = null;
+    popupState = 'unsaved';
+    updateUiState('unsaved');
+    setStatus('Job deleted from Jobby.', 'success');
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : 'Delete failed.', 'error');
+  } finally {
+    setBusy(false);
+    updateUiState(popupState);
   }
 }
 
@@ -826,8 +927,10 @@ form.addEventListener('submit', (event) => {
 refillBtn.addEventListener('click', refillFromPage);
 saveBtn.addEventListener('click', () => saveDraft(false));
 saveGenerateBtn.addEventListener('click', () => saveDraft(true));
+deleteBtn.addEventListener('click', deleteCurrentApplication);
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();
+  updateUiState('unsaved');
   await refillFromPage();
 });
