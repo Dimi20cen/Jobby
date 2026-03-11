@@ -59,6 +59,29 @@ function TrashIcon() {
   );
 }
 
+function StatusFilterControl({
+  statusFilter,
+  onStatusFilterChange
+}: Pick<Props, 'statusFilter' | 'onStatusFilterChange'>) {
+  return (
+    <label className="status-select-wrap">
+      <span className="sr-only">Filter applications by status</span>
+      <select
+        className="status-select"
+        aria-label="Filter applications by status"
+        value={statusFilter}
+        onChange={(event) => onStatusFilterChange(event.target.value as '' | ApplicationStatus)}
+      >
+        {statusFilters.map((filter) => (
+          <option key={filter.label} value={filter.value}>
+            {filter.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export default function ApplicationTable({ items, statusFilter, onStatusFilterChange, onDeleted }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -88,29 +111,21 @@ export default function ApplicationTable({ items, statusFilter, onStatusFilterCh
 
   return (
     <Card className="applications-panel">
-      <div className="applications-toolbar">
-        <h2>Applications</h2>
-        <label className="status-select-wrap">
-          <span className="sr-only">Filter applications by status</span>
-          <select
-            className="status-select"
-            aria-label="Filter applications by status"
-            value={statusFilter}
-            onChange={(event) => onStatusFilterChange(event.target.value as '' | ApplicationStatus)}
-          >
-            {statusFilters.map((filter) => (
-              <option key={filter.label} value={filter.value}>
-                {filter.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
       {error ? <p className="error">{error}</p> : null}
       {latestItems.length === 0 ? (
         <div className="empty-state">
-          <p>No applications yet.</p>
-          <p className="muted">Create one manually or use the extension to capture a job page into Jobby.</p>
+          <div className="empty-state-toolbar">
+            <p>{statusFilter ? 'No matching applications.' : 'No applications yet.'}</p>
+            <StatusFilterControl
+              statusFilter={statusFilter}
+              onStatusFilterChange={onStatusFilterChange}
+            />
+          </div>
+          <p className="muted">
+            {statusFilter
+              ? 'Try a different status filter to see the rest of your applications.'
+              : 'Create one manually or use the extension to capture a job page into Jobby.'}
+          </p>
         </div>
       ) : (
         <div className="table-wrap table-wrap-scrollable">
@@ -120,7 +135,12 @@ export default function ApplicationTable({ items, statusFilter, onStatusFilterCh
                 <th>Company</th>
                 <th className="col-role">Role</th>
                 <th className="col-location">Location</th>
-                <th className="col-status">Status</th>
+                <th className="col-status status-header-cell">
+                  <StatusFilterControl
+                    statusFilter={statusFilter}
+                    onStatusFilterChange={onStatusFilterChange}
+                  />
+                </th>
                 <th />
               </tr>
             </thead>

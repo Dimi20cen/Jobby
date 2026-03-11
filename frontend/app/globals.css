@@ -144,6 +144,14 @@ p {
   gap: 10px;
 }
 
+.empty-state-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
 .eyebrow {
   color: var(--brand-700);
   font-size: 0.8rem;
@@ -324,11 +332,6 @@ button {
   color: var(--muted);
 }
 
-.applications-toolbar {
-  display: grid;
-  gap: 12px;
-}
-
 .status-select-wrap {
   position: relative;
   width: fit-content;
@@ -346,16 +349,16 @@ button {
 
 .status-select {
   appearance: none;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(53, 88, 114, 0.14);
   border-radius: 999px;
   color: var(--brand-900);
   cursor: pointer;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 800;
-  min-height: 40px;
-  min-width: 114px;
-  padding: 0 38px 0 15px;
+  min-height: 34px;
+  min-width: 96px;
+  padding: 0 32px 0 13px;
   width: auto;
 }
 
@@ -367,6 +370,28 @@ button {
   max-height: 390px;
   overflow-y: auto;
   padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(79, 116, 144, 0.34) transparent;
+}
+
+.table-wrap-scrollable::-webkit-scrollbar {
+  width: 10px;
+}
+
+.table-wrap-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-wrap-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(79, 116, 144, 0.28);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.table-wrap-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 116, 144, 0.4);
+  background-clip: padding-box;
 }
 
 .applications-table {
@@ -385,7 +410,9 @@ button {
 }
 
 .applications-table thead th {
-  background: rgba(247, 248, 240, 0.92);
+  background: rgba(255, 255, 255, 0.96);
+  border-top: none;
+  border-bottom: 1px solid rgba(53, 88, 114, 0.12);
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 800;
@@ -394,6 +421,11 @@ button {
   text-transform: uppercase;
   top: 0;
   z-index: 1;
+}
+
+.status-header-cell {
+  padding-bottom: 10px;
+  padding-top: 10px;
 }
 
 .applications-table tbody tr:hover td {
