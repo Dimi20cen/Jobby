@@ -117,9 +117,9 @@ export default function ApplicationTable({ items, statusFilter, onStatusFilterCh
             <thead>
               <tr>
                 <th>Company</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Location</th>
+                <th className="col-role">Role</th>
+                <th className="col-location">Location</th>
+                <th className="col-status">Status</th>
                 <th />
               </tr>
             </thead>
@@ -134,11 +134,11 @@ export default function ApplicationTable({ items, statusFilter, onStatusFilterCh
                       <span className="table-meta">Updated {formatDate(item.updated_at)}</span>
                     </div>
                   </td>
-                  <td>{item.job_title}</td>
-                  <td>
+                  <td className="col-role">{item.job_title}</td>
+                  <td className="col-location">{item.location || 'N/A'}</td>
+                  <td className="col-status">
                     <StatusBadge status={item.status} />
                   </td>
-                  <td>{item.location || 'Remote / n/a'}</td>
                   <td className="table-actions-cell">
                     <div className="table-actions">
                       <LinkButton href={`/applications/${item.id}`} className="icon-button" variant="secondary">
