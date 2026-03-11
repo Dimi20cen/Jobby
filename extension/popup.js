@@ -845,7 +845,7 @@ async function saveDraft(shouldGenerate) {
   }
 
   setBusy(true);
-  setStatus(shouldGenerate ? 'Generating assets from saved job...' : 'Saving draft to Jobby...');
+  setStatus(shouldGenerate ? 'Generating assets from saved job...' : 'Saving job to Jobby...');
   try {
     if (shouldGenerate) {
       const generatedApplication = await triggerGeneration(currentApplicationId);
@@ -861,7 +861,7 @@ async function saveDraft(shouldGenerate) {
       currentApplicationId = application.id;
       popupState = 'saved';
       populateFieldsFromRecord(application);
-      setStatus('Draft saved to Jobby.', 'success');
+      setStatus('Job saved to Jobby.', 'success');
     }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'Save failed.', 'error');
