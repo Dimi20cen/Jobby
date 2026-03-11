@@ -24,7 +24,7 @@ At runtime the flow is:
 1. The user opens the Next.js dashboard.
 2. The frontend calls the FastAPI backend over HTTP.
 3. The backend reads and writes application records in Postgres.
-4. When AI generation is requested, the backend calls an OpenAI-compatible LLM provider.
+4. When AI generation is requested, the backend calls the Hermes AI gateway over HTTP.
 5. Generated assets are stored back on the application record and returned to the frontend.
 
 ## System Responsibilities
@@ -39,6 +39,7 @@ At runtime the flow is:
 - owns the application schema and lifecycle
 - validates application creation and update rules
 - exposes CRUD endpoints and the AI generation endpoint
+- assembles application-specific prompts and calls Hermes for structured generation
 - stores generated outputs alongside the application record
 
 ### Database
@@ -69,7 +70,7 @@ The flow is:
 - user clicks `Generate AI Assets`
 - frontend calls `POST /applications/{id}/generate`
 - backend validates that `job_description` and `cv_used` are long enough
-- backend calls `generate_application(...)`
+- backend calls `generate_application(...)`, which sends a structured request to Hermes
 - backend writes generated bullets, cover letter, interview questions, and evaluation fields back to the record
 
 ## Design Intent

@@ -24,7 +24,7 @@ The system currently supports:
 - dashboard list and activity graph
 - status tracking across a simple pipeline
 - AI generation of cover letters, tailored bullets, and interview questions
-- OpenAI-compatible provider configuration, including Gemini via compatible endpoints
+- Hermes gateway-backed generation, with provider routing handled outside Jobby
 
 ## Reading Order
 If you are new to the codebase, start with:

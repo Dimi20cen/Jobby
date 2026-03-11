@@ -147,7 +147,7 @@ Notable types:
 Defines the SQLAlchemy `Application` model.
 
 ### `backend/app/services/llm.py`
-Encapsulates provider calls and model fallback logic.
+Encapsulates Hermes gateway calls and response normalization for application-specific generation.
 
 ## Error Handling
 Current error approach:

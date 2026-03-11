@@ -99,33 +99,42 @@ The extension should point to:
 - `FRONTEND_PORT`
 - `NEXT_PUBLIC_API_BASE_URL`
 
-### LLM provider
-- `OPENROUTER_API_KEY`
-- `OPENAI_API_KEY`
-- `GEMINI_API_KEY`
-- `OPENAI_BASE_URL`
-- `OPENAI_MODEL`
-- `FALLBACK_MODELS`
-- `OPENROUTER_SITE_URL`
-- `OPENROUTER_APP_NAME`
+### Hermes AI gateway
+- `HERMES_BASE_URL`
+- `HERMES_SERVICE_TOKEN`
+- `HERMES_PROVIDER`
+- `HERMES_MODEL`
+- `HERMES_TIMEOUT_SECONDS`
 
-## Gemini Configuration
-The backend treats Gemini as an OpenAI-compatible provider when configured through a compatible base URL.
+## Hermes Configuration
+Jobby no longer talks to OpenAI-compatible providers or Codex directly. The backend sends structured generation requests to Hermes, and Hermes owns provider routing.
 
 Typical setup:
 
 ```env
-GEMINI_API_KEY=...
-OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
-OPENAI_MODEL=models/gemini-2.5-flash
-FALLBACK_MODELS=models/gemini-2.5-flash-lite,models/gemini-2.0-flash-lite
+HERMES_BASE_URL=http://localhost:8010
+HERMES_SERVICE_TOKEN=local-dev-token
+HERMES_PROVIDER=
+HERMES_MODEL=
+HERMES_TIMEOUT_SECONDS=180
 ```
+
+Notes:
+- Hermes should be running before you trigger application generation in Jobby
+- provider-specific credentials and Codex configuration now live in the Hermes repo, not Jobby
+- Jobby keeps the application-specific prompt while Hermes handles transport, auth, and provider execution
+- if you run Jobby locally, ensure Hermes is also started with its `.env` loaded
 
 ## Useful Commands
 
 ### Backend tests
 ```bash
 make test-backend
+```
+
+### Hermes smoke test
+```bash
+make smoke-hermes
 ```
 
 ### Frontend build
@@ -168,11 +177,11 @@ cd frontend
 npm install
 ```
 
-### LLM calls fail
+### Hermes calls fail
 Check:
-- the API key variable matches the provider you are using
-- `OPENAI_BASE_URL` is correct for the provider
-- `OPENAI_MODEL` matches a valid model id
+- `HERMES_BASE_URL` points at a running Hermes instance
+- `HERMES_SERVICE_TOKEN` matches the Hermes service token
+- Hermes itself is configured with a working provider
 
 ### Generation endpoint returns validation errors
 The application must already contain:

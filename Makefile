@@ -1,6 +1,6 @@
 COMPOSE = docker compose -f infra/docker-compose.yml --env-file .env
 
-.PHONY: help install frontend-install backend-install dev-db dev-backend dev-frontend dev dev-split up down logs test-backend build-frontend
+.PHONY: help install frontend-install backend-install dev-db dev-backend dev-frontend dev dev-split up down logs test-backend build-frontend smoke-hermes
 
 help:
 	@echo "Jobby developer commands"
@@ -16,6 +16,7 @@ help:
 	@echo "  make logs              Tail Docker logs"
 	@echo "  make test-backend      Run backend tests"
 	@echo "  make build-frontend    Run a production frontend build"
+	@echo "  make smoke-hermes      Run a live Hermes-backed generation smoke test"
 
 install: backend-install frontend-install
 
@@ -61,3 +62,6 @@ test-backend:
 
 build-frontend:
 	cd frontend && npm run build
+
+smoke-hermes:
+	bash scripts/smoke_hermes.sh

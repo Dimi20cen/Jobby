@@ -31,6 +31,9 @@ The current MVP includes:
 - AI generation inside an application record
 - Chrome extension MVP for job-board capture
 - local-first Docker setup
+- Hermes-backed AI generation for local use and future multi-app reuse
+
+Jobby now delegates AI generation to the Hermes gateway, which can route requests to OpenAI-compatible providers or Codex-backed execution behind one stable internal API.
 
 Planned next:
 - Gmail integration for application-related emails
