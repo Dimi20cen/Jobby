@@ -9,8 +9,6 @@ const statusEl = document.getElementById('status');
 const refillBtn = document.getElementById('refillBtn');
 const saveBtn = document.getElementById('saveBtn');
 const saveGenerateBtn = document.getElementById('saveGenerateBtn');
-const stateChipEl = document.getElementById('stateChip');
-const sourceChipEl = document.getElementById('sourceChip');
 const openJobLinkEl = document.getElementById('openJobLink');
 const deleteBtn = document.getElementById('deleteBtn');
 
@@ -25,7 +23,6 @@ const fields = {
 let settings = { ...DEFAULT_SETTINGS };
 let currentApplicationId = null;
 let popupState = 'unsaved';
-let currentSourceLabel = 'Page';
 
 function setStatus(message, tone = '') {
   statusEl.textContent = message;
@@ -43,34 +40,8 @@ function cleanBaseUrl(url) {
   return url.replace(/\/+$/, '');
 }
 
-function deriveSourceLabel(url) {
-  try {
-    const hostname = new URL(url).hostname.replace(/^www\./, '');
-    if (hostname.includes('linkedin')) {
-      return 'LinkedIn';
-    }
-    if (hostname.includes('indeed')) {
-      return 'Indeed';
-    }
-    return hostname || 'Page';
-  } catch (_error) {
-    return 'Page';
-  }
-}
-
 function updateUiState(nextState) {
   popupState = nextState;
-
-  const stateMeta = {
-    unsaved: { label: 'Unsaved', chipClass: 'chip chip-muted' },
-    saved: { label: 'Saved', chipClass: 'chip chip-success' },
-    generated: { label: 'Generated', chipClass: 'chip chip-success' }
-  };
-
-  const activeState = stateMeta[nextState] || stateMeta.unsaved;
-  stateChipEl.textContent = activeState.label;
-  stateChipEl.className = activeState.chipClass;
-  sourceChipEl.textContent = currentSourceLabel;
 
   const hasSavedRecord = Boolean(currentApplicationId);
   saveBtn.textContent = hasSavedRecord ? 'Update Job' : 'Save Job';
@@ -91,7 +62,6 @@ function populateFieldsFromRecord(record) {
   fields.location.value = record.location || '';
   fields.jobUrl.value = record.job_url || '';
   fields.jobDescription.value = record.job_description || '';
-  currentSourceLabel = deriveSourceLabel(record.job_url || '');
   updateUiState(currentApplicationId ? popupState : 'unsaved');
 }
 
@@ -767,7 +737,6 @@ async function refillFromPage() {
       url: result?.url || tab.url || '',
       description: result?.description || ''
     };
-    currentSourceLabel = deriveSourceLabel(scraped.url);
 
     fields.jobTitle.value = scraped.title;
     fields.companyName.value = scraped.company;
