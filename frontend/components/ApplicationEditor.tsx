@@ -98,8 +98,8 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
   }
 
   const isDirty = JSON.stringify(form) !== lastSavedSnapshot;
-  const canGenerate = Boolean(form.job_description.trim()) && !isNew;
-  const hasAiOutputs = Boolean(form.cover_letter || form.interview_questions.length);
+  const hasJobDescription = Boolean(form.job_description.trim());
+  const canGenerate = !isNew && hasJobDescription && !isDirty;
 
   async function handleSubmit(event: FormEvent): Promise<void> {
     event.preventDefault();
@@ -181,28 +181,20 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
     <main>
       <ApplicationHeader
         title={isNew ? 'Create New Application' : form.job_title || 'Untitled role'}
-        subtitle={
-          isNew
-            ? 'Create the record, then generate materials when you are ready.'
-            : form.company_name || 'Company pending'
-        }
-        status={form.status}
-        hasAiOutputs={hasAiOutputs}
-        isDirty={isDirty}
       />
       {notice ? (
-        <Card className="notice-panel">
+        <Card className="notice-panel banner-panel">
           <p>{notice}</p>
         </Card>
       ) : null}
       {error ? (
-        <Card>
+        <Card className="error-panel banner-panel">
           <p className="error">{error}</p>
         </Card>
       ) : null}
       <div className="editor-layout">
-        <Card as="form" onSubmit={handleSubmit}>
-          <ApplicationFormFields form={form} onFieldChange={setField} />
+        <Card as="form" className="editor-form-panel" onSubmit={handleSubmit}>
+          <ApplicationFormFields isNew={isNew} form={form} onFieldChange={setField} />
           <ApplicationActions
             isNew={isNew}
             saving={saving}
@@ -214,7 +206,13 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
           />
         </Card>
 
-        <AIWorkspace detail={detail} form={form} generating={generating} onFieldChange={setField} />
+        <AIWorkspace
+          isNew={isNew}
+          detail={detail}
+          form={form}
+          generating={generating}
+          onFieldChange={setField}
+        />
       </div>
     </main>
   );

@@ -3,6 +3,7 @@ import { TextareaField } from '@/components/ui/Field';
 import { ApplicationDetail, CreateApplicationRequest } from '@/types';
 
 type Props = {
+  isNew: boolean;
   detail: ApplicationDetail | null;
   form: CreateApplicationRequest;
   generating: boolean;
@@ -13,7 +14,7 @@ function joinItems(items: string[]): string {
   return items.length > 0 ? items.join(', ') : 'Not generated';
 }
 
-export default function AIWorkspace({ detail, form, generating, onFieldChange }: Props) {
+export default function AIWorkspace({ isNew, detail, form, generating, onFieldChange }: Props) {
   const hasOutputs = Boolean(form.cover_letter || form.interview_questions.length);
 
   return (
@@ -22,14 +23,10 @@ export default function AIWorkspace({ detail, form, generating, onFieldChange }:
         <div>
           <h2>AI outputs</h2>
         </div>
-        <p className="muted">{detail?.used_model ? `Model: ${detail.used_model}` : 'Generate when the record is ready.'}</p>
+        {detail?.used_model ? <p className="muted">{detail.used_model}</p> : null}
       </div>
-      <div className="ai-intro compact-copy">
-        {!hasOutputs && !generating ? (
-          <p className="ai-empty">No AI outputs yet.</p>
-        ) : null}
-        {generating ? <p className="ai-empty">Generation is running. Updated materials will appear here when ready.</p> : null}
-      </div>
+      {!hasOutputs && !generating ? <p className="ai-empty">{isNew ? 'AI outputs appear after creation.' : 'No AI outputs yet.'}</p> : null}
+      {generating ? <p className="ai-empty">Generating...</p> : null}
       <div className="ai-metrics">
         <div className="ai-metric-card">
           <span className="ai-metric-label">Relevance</span>
