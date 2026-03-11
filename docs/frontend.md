@@ -79,6 +79,12 @@ This file is the right place to keep fetch contracts consistent and avoid sprink
 ## Styling
 Global styling lives in `frontend/app/globals.css`.
 
+Core palette:
+- `#355872`
+- `#7AAACE`
+- `#9CD5FF`
+- `#F7F8F0`
+
 Current visual direction:
 - restrained blue palette built around the Jobby brand colors
 - single-font UI typography with a minimal application-shell feel

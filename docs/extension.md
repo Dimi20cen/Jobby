@@ -32,6 +32,12 @@ The extension lives in `extension/`.
 - `extension/options.html`: settings screen
 - `extension/options.js`: storage-backed settings logic
 
+Core palette:
+- `#355872`
+- `#7AAACE`
+- `#9CD5FF`
+- `#F7F8F0`
+
 ## Architecture
 The extension is intentionally no-build and plain JavaScript.
 
