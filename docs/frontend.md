@@ -80,10 +80,10 @@ This file is the right place to keep fetch contracts consistent and avoid sprink
 Global styling lives in `frontend/app/globals.css`.
 
 Current visual direction:
-- warm editorial palette
-- serif typography
-- soft panel surfaces
-- dashboard cards with stronger visual identity than a default app shell
+- restrained blue palette built around the Jobby brand colors
+- single-font UI typography with a minimal application-shell feel
+- soft panel surfaces, light borders, and understated controls
+- dashboard table filtering integrated directly into the status column header
 
 This is intentional. The app should feel like a product, not a generic form generator.
 

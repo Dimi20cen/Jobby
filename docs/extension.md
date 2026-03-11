@@ -19,6 +19,7 @@ It lets a user:
 - scrape the current job page
 - review the captured fields in a popup
 - save an applied application into Jobby
+- reopen the saved application in the main Jobby UI
 - optionally trigger AI generation right after saving
 
 The extension lives in `extension/`.
@@ -41,7 +42,8 @@ Flow:
 4. The popup checks Jobby for an existing application with the same `job_url`.
 5. If found, the popup rehydrates from the saved record; otherwise it keeps the scraped values.
 6. The user saves the job through `POST /applications` or updates the existing record with `PUT /applications/{id}`; extension saves mark the record as `applied` with today's date.
-7. Optional: the popup calls `POST /applications/{id}/generate`.
+7. Once a record exists, the popup exposes update, delete, generate, and "open in Jobby" actions without leaving the popup.
+8. Optional: the popup calls `POST /applications/{id}/generate`.
 
 ## Stored Settings
 The options page uses `chrome.storage.sync` for:
@@ -66,7 +68,6 @@ This keeps the extension useful across multiple sites while giving better qualit
 ## Known Limits
 - extraction is heuristic, so some boards will need manual cleanup
 - LinkedIn location extraction is still inconsistent on some layouts
-- no direct deep-link into a newly created application yet
 - no background sync or page-change listeners
 - no browser-store packaging yet
 

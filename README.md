@@ -17,9 +17,10 @@ Jobby pulls that workflow into one product-shaped app.
 - create and manage application records
 - track status across a simple pipeline
 - store job description, CV used, notes, and job URL
-- view applications in a dashboard
+- view applications in a dashboard with status filtering
 - see a daily activity graph for momentum
 - generate cover letters, tailored bullets, and interview questions for a saved application
+- capture jobs from the Chrome extension and reopen/update the saved application from the popup
 
 ## Current Status
 This project is in active development.
