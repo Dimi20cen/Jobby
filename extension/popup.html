@@ -13,11 +13,26 @@
         <div class="brand-wrap">
           <img src="logo.svg" alt="Jobby" class="brand-mark">
         </div>
-        <button type="button" id="deleteBtn" class="icon-button hidden" title="Delete job from Jobby" aria-label="Delete job from Jobby">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 7h2v7h-2v-7Zm4 0h2v7h-2v-7ZM7 10h2v7H7v-7Zm1 10h8a2 2 0 0 0 2-2V8H6v10a2 2 0 0 0 2 2Z"></path>
-          </svg>
-        </button>
+        <div class="top-actions">
+          <a
+            id="openJobLink"
+            class="icon-button top-link hidden"
+            href="#"
+            target="_blank"
+            rel="noreferrer"
+            title="Open in Jobby"
+            aria-label="Open in Jobby"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 5h5v5h-2V8.41l-6.29 6.3-1.42-1.42 6.3-6.29H14V5ZM6 7h5v2H8v7h7v-3h2v5H6V7Z"></path>
+            </svg>
+          </a>
+          <button type="button" id="deleteBtn" class="icon-button hidden" title="Delete job from Jobby" aria-label="Delete job from Jobby">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 7h2v7h-2v-7Zm4 0h2v7h-2v-7ZM7 10h2v7H7v-7Zm1 10h8a2 2 0 0 0 2-2V8H6v10a2 2 0 0 0 2 2Z"></path>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <label class="field">
@@ -37,9 +52,9 @@
 
       <input id="jobUrl" type="hidden">
 
-      <label class="field">
+      <label class="field field-description">
         <span>Description</span>
-        <textarea id="jobDescription" rows="7"></textarea>
+        <textarea id="jobDescription" rows="5"></textarea>
       </label>
 
       <div class="button-row">
@@ -49,11 +64,9 @@
 
       <button type="button" id="saveGenerateBtn" class="generate">Generate Letter</button>
       <div class="action-footer">
-        <a id="openJobLink" class="open-link hidden" href="#" target="_blank" rel="noreferrer">Open in Jobby</a>
+        <p id="status" class="status" aria-live="polite"></p>
       </div>
     </form>
-
-    <p id="status" class="status" aria-live="polite"></p>
   </main>
 
   <script src="popup.js"></script>

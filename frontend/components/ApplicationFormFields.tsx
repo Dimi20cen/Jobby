@@ -2,14 +2,13 @@ import { InputField, SelectField, TextareaField } from '@/components/ui/Field';
 import { ApplicationStatus, CreateApplicationRequest } from '@/types';
 
 type Props = {
-  isNew: boolean;
   form: CreateApplicationRequest;
   onFieldChange: <K extends keyof CreateApplicationRequest>(key: K, value: CreateApplicationRequest[K]) => void;
 };
 
 const statuses: ApplicationStatus[] = ['draft', 'applied', 'interview', 'offer', 'rejected', 'archived'];
 
-export default function ApplicationFormFields({ isNew, form, onFieldChange }: Props) {
+export default function ApplicationFormFields({ form, onFieldChange }: Props) {
   return (
     <>
       <section className="form-section">

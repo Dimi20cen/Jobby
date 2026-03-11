@@ -1,6 +1,12 @@
 import './globals.css';
 import { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
+import { Manrope } from 'next/font/google';
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  variable: '--font-manrope'
+});
 
 export const metadata: Metadata = {
   title: 'Jobby',
@@ -18,13 +24,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1B3C53'
+  themeColor: '#355872'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={manrope.variable}>{children}</body>
     </html>
   );
 }

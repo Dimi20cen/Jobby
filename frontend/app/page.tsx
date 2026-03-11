@@ -48,34 +48,47 @@ export default function HomePage() {
 
   return (
     <main>
-      <div className="dashboard-topbar dashboard-shell-header">
-        <div className="brand-lockup" aria-label="Jobby">
-          <Image src="/brand/logo.svg" alt="Jobby" width={140} height={40} priority />
-        </div>
-        <LinkButton href="/applications/new">New Application</LinkButton>
+      <div className="dashboard-shell">
+        <Card className="shell-card">
+          <div className="dashboard-shell-header">
+            <div className="brand-bar">
+              <div className="brand-lockup" aria-label="Jobby">
+                <Image
+                  src="/brand/logo.svg"
+                  alt="Jobby"
+                  width={160}
+                  height={44}
+                  className="brand-mark"
+                  priority
+                />
+              </div>
+              <LinkButton href="/applications/new">New Application</LinkButton>
+            </div>
+          </div>
+        </Card>
+
+        {error ? (
+          <Card className="error-panel banner-panel">
+            <p className="error">{error}</p>
+          </Card>
+        ) : null}
+        {loading ? (
+          <Card>
+            <p>Loading dashboard...</p>
+          </Card>
+        ) : null}
+        {!loading ? (
+          <ApplicationTable
+            items={items}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            onDeleted={(id) => setItems((current) => current.filter((item) => item.id !== id))}
+          />
+        ) : null}
+
+        <ActivityGrid items={activity} />
+        <ExtensionCard />
       </div>
-
-      {error ? (
-        <Card>
-          <p className="error">{error}</p>
-        </Card>
-      ) : null}
-      {loading ? (
-        <Card>
-          <p>Loading dashboard...</p>
-        </Card>
-      ) : null}
-      {!loading ? (
-        <ApplicationTable
-          items={items}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          onDeleted={(id) => setItems((current) => current.filter((item) => item.id !== id))}
-        />
-      ) : null}
-
-      <ActivityGrid items={activity} />
-      <ExtensionCard />
     </main>
   );
 }

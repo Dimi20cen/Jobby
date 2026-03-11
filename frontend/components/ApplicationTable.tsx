@@ -89,6 +89,7 @@ export default function ApplicationTable({ items, statusFilter, onStatusFilterCh
   return (
     <Card className="applications-panel">
       <div className="applications-toolbar">
+        <h2>Applications</h2>
         <label className="status-select-wrap">
           <span className="sr-only">Filter applications by status</span>
           <select

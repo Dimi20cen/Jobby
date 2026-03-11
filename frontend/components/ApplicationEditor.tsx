@@ -100,6 +100,9 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
   const isDirty = JSON.stringify(form) !== lastSavedSnapshot;
   const hasJobDescription = Boolean(form.job_description.trim());
   const canGenerate = !isNew && hasJobDescription && !isDirty;
+  const headerMeta = [form.company_name, form.location, isNew ? null : form.status]
+    .map((item) => item?.trim())
+    .filter(Boolean) as string[];
 
   async function handleSubmit(event: FormEvent): Promise<void> {
     event.preventDefault();
@@ -179,40 +182,43 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
 
   return (
     <main>
-      <ApplicationHeader
-        title={isNew ? 'Create New Application' : form.job_title || 'Untitled role'}
-      />
-      {notice ? (
-        <Card className="notice-panel banner-panel">
-          <p>{notice}</p>
-        </Card>
-      ) : null}
-      {error ? (
-        <Card className="error-panel banner-panel">
-          <p className="error">{error}</p>
-        </Card>
-      ) : null}
-      <div className="editor-layout">
-        <Card as="form" className="editor-form-panel" onSubmit={handleSubmit}>
-          <ApplicationFormFields isNew={isNew} form={form} onFieldChange={setField} />
-          <ApplicationActions
-            isNew={isNew}
-            saving={saving}
-            generating={generating}
-            canGenerate={canGenerate}
-            isDirty={isDirty}
-            onGenerate={handleGenerate}
-            onDelete={handleDelete}
-          />
-        </Card>
-
-        <AIWorkspace
-          isNew={isNew}
-          detail={detail}
-          form={form}
-          generating={generating}
-          onFieldChange={setField}
+      <div className="editor-shell">
+        <ApplicationHeader
+          title={isNew ? 'Create New Application' : form.job_title || 'Untitled role'}
+          meta={headerMeta}
         />
+        {notice ? (
+          <Card className="notice-panel banner-panel">
+            <p>{notice}</p>
+          </Card>
+        ) : null}
+        {error ? (
+          <Card className="error-panel banner-panel">
+            <p className="error">{error}</p>
+          </Card>
+        ) : null}
+        <div className="editor-layout">
+          <Card as="form" className="editor-form-panel" onSubmit={handleSubmit}>
+            <ApplicationFormFields form={form} onFieldChange={setField} />
+            <ApplicationActions
+              isNew={isNew}
+              saving={saving}
+              generating={generating}
+              canGenerate={canGenerate}
+              isDirty={isDirty}
+              onGenerate={handleGenerate}
+              onDelete={handleDelete}
+            />
+          </Card>
+
+          <AIWorkspace
+            isNew={isNew}
+            detail={detail}
+            form={form}
+            generating={generating}
+            onFieldChange={setField}
+          />
+        </div>
       </div>
     </main>
   );

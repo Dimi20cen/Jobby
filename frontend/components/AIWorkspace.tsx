@@ -20,9 +20,7 @@ export default function AIWorkspace({ isNew, detail, form, generating, onFieldCh
   return (
     <Card className="ai-panel">
       <div className="section-heading">
-        <div>
-          <h2>AI outputs</h2>
-        </div>
+        <h2>AI outputs</h2>
         {detail?.used_model ? <p className="muted">{detail.used_model}</p> : null}
       </div>
       {!hasOutputs && !generating ? <p className="ai-empty">{isNew ? 'AI outputs appear after creation.' : 'No AI outputs yet.'}</p> : null}
