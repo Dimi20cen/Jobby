@@ -519,20 +519,12 @@ button:disabled {
   padding-top: 24px;
 }
 
-.readiness-card {
-  background: linear-gradient(180deg, rgba(255, 247, 238, 0.9) 0%, rgba(255, 251, 245, 0.95) 100%);
-  border: 1px solid var(--border);
-  border-radius: 18px;
+.action-row {
   display: grid;
-  gap: 10px;
-  padding: 16px 18px;
+  gap: 12px;
 }
 
-.readiness-card h2 {
-  margin-bottom: 0;
-}
-
-.readiness-card p {
+.action-note {
   margin: 0;
 }
 
@@ -582,14 +574,13 @@ button:disabled {
   padding: 4px 4px 0;
 }
 
-.action-support {
-  align-items: center;
+.action-footer {
   display: grid;
-  gap: 12px;
+  justify-content: start;
 }
 
-.action-support p {
-  margin: 0;
+.action-delete {
+  min-width: 0;
 }
 
 .ai-panel {
@@ -690,8 +681,8 @@ button:disabled {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .action-support {
-    grid-template-columns: 1fr auto;
+  .action-row {
+    grid-template-columns: 1fr 1fr;
   }
 
   .ai-metrics {
@@ -717,7 +708,7 @@ button:disabled {
   }
 
   .page-header-actions,
-  .action-support {
+  .action-footer {
     grid-template-columns: 1fr;
   }
 }
