@@ -1,6 +1,6 @@
 const DEFAULT_SETTINGS = {
-  backendBaseUrl: 'http://localhost:8000',
-  dashboardUrl: 'http://localhost:3000',
+  backendBaseUrl: 'http://100.124.230.107:8001',
+  dashboardUrl: 'http://100.124.230.107:3000',
   defaultCvText: ''
 };
 

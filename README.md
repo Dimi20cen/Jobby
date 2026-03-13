@@ -59,7 +59,7 @@ For a private deployment on `srv` similar to HQ:
    - `FRONTEND_BIND_IP=100.124.230.107`
    - `BACKEND_BIND_IP=100.124.230.107`
    - `POSTGRES_BIND_IP=127.0.0.1`
-   - `NEXT_PUBLIC_API_BASE_URL=http://100.124.230.107:8000`
+   - `NEXT_PUBLIC_API_BASE_URL=http://100.124.230.107:8001`
    - `FRONTEND_BASE_URL=http://100.124.230.107:3000`
    - `AUTH_BASE_URL=https://auth.dimy.dev`
    - `HERMES_BASE_URL=http://100.124.230.107:8010`

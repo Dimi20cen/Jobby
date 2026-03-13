@@ -58,8 +58,16 @@ The options page uses `chrome.storage.sync` for:
 - `defaultCvText`
 
 Defaults:
+- backend: `http://100.124.230.107:8001`
+- dashboard: `http://100.124.230.107:3000`
+
+For local development, set:
 - backend: `http://localhost:8000`
 - dashboard: `http://localhost:3000`
+
+For the private `srv` deployment, set:
+- backend: `http://100.124.230.107:8001`
+- dashboard: `http://100.124.230.107:3000`
 
 ## Current Scraping Strategy
 The scraper uses a layered fallback approach:
@@ -83,6 +91,10 @@ This keeps the extension useful across multiple sites while giving better qualit
 3. Click `Load unpacked`
 4. Select the repo's `extension/` directory
 5. Open the extension options and confirm the backend/dashboard URLs
+
+The unpacked manifest allows requests to:
+- local development on `localhost` / `127.0.0.1`
+- the private `srv` deployment on `100.124.230.107`
 
 ## Next Improvements
 - improve LinkedIn location extraction on newer layouts

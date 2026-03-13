@@ -1,6 +1,6 @@
 const DEFAULT_SETTINGS = {
-  backendBaseUrl: 'http://localhost:8000',
-  dashboardUrl: 'http://localhost:3000',
+  backendBaseUrl: 'http://100.124.230.107:8001',
+  dashboardUrl: 'http://100.124.230.107:3000',
   defaultCvText: ''
 };
 
@@ -35,7 +35,7 @@ async function saveSettings(event) {
 async function resetSettings() {
   await chrome.storage.sync.set(DEFAULT_SETTINGS);
   await loadSettings();
-  setStatus('Settings reset to local defaults.', 'success');
+  setStatus('Settings reset to srv defaults.', 'success');
 }
 
 document.getElementById('optionsForm').addEventListener('submit', saveSettings);

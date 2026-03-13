@@ -83,6 +83,14 @@ The extension should point to:
 - backend: `http://localhost:8000`
 - dashboard: `http://localhost:3000`
 
+The unpacked extension now defaults to the private `srv` deployment. For local development, update the extension options back to:
+- backend: `http://localhost:8000`
+- dashboard: `http://localhost:3000`
+
+For the private `srv` deployment, use:
+- backend: `http://100.124.230.107:8001`
+- dashboard: `http://100.124.230.107:3000`
+
 ## Environment Variables
 
 ### Database
