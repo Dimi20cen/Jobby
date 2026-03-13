@@ -49,6 +49,24 @@ docker compose -f infra/docker-compose.yml --env-file .env up --build
 Then open:
 - `http://localhost:3000`
 
+## Private `srv` Deploy
+
+For a private deployment on `srv` similar to HQ:
+
+1. Clone the repo to `/srv/stacks/jobby`
+2. Copy `.env.example` to `.env`
+3. Set private runtime values, for example:
+   - `FRONTEND_BIND_IP=100.124.230.107`
+   - `BACKEND_BIND_IP=100.124.230.107`
+   - `POSTGRES_BIND_IP=127.0.0.1`
+   - `NEXT_PUBLIC_API_BASE_URL=http://100.124.230.107:8000`
+   - `FRONTEND_BASE_URL=http://100.124.230.107:3000`
+   - `AUTH_BASE_URL=https://auth.dimy.dev`
+   - `HERMES_BASE_URL=http://100.124.230.107:8010`
+4. Run `/usr/bin/bash /srv/stacks/jobby/bin/deploy.sh`
+
+This keeps Jobby private while still using Janus for the public Google OAuth callback.
+
 ## Better Dev Loop
 For everyday development, use the hybrid flow:
 

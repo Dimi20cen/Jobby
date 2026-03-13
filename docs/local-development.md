@@ -87,15 +87,19 @@ The extension should point to:
 
 ### Database
 - `DATABASE_URL`
+- `COMPOSE_DATABASE_URL`
+- `POSTGRES_BIND_IP`
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `POSTGRES_DB`
 - `POSTGRES_PORT`
 
 ### Backend server
+- `BACKEND_BIND_IP`
 - `BACKEND_PORT`
 
 ### Frontend server
+- `FRONTEND_BIND_IP`
 - `FRONTEND_PORT`
 - `NEXT_PUBLIC_API_BASE_URL`
 
@@ -179,6 +183,16 @@ make logs
 - add `AUTH_BASE_URL` and `AUTH_SERVICE_TOKEN` to Jobby `.env`
 - connect Google through the application detail page, which now starts the flow at the shared auth service
 - use `Refresh Threads` on the application page to fetch recent recruiter mail plus targeted company searches for saved applications
+
+## Private `srv` Deploy
+- repo path: `/srv/stacks/jobby`
+- deploy script: `/srv/stacks/jobby/bin/deploy.sh`
+- compose file: `infra/docker-compose.yml`
+- runtime data path: `runtime/postgres`
+- recommended private bind values on `srv`:
+  - `FRONTEND_BIND_IP=100.124.230.107`
+  - `BACKEND_BIND_IP=100.124.230.107`
+  - `POSTGRES_BIND_IP=127.0.0.1`
 
 ## Common Failure Modes
 

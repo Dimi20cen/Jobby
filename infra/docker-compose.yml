@@ -1,14 +1,15 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: jobby-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-jobby}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - ../runtime/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
@@ -18,10 +19,11 @@ services:
   backend:
     build:
       context: ../backend
+    container_name: jobby-backend
     env_file:
       - ../.env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@postgres:5432/jobby}
+      DATABASE_URL: ${COMPOSE_DATABASE_URL:-postgresql+psycopg://postgres:postgres@postgres:5432/jobby}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://openrouter.ai/api/v1}
       OPENAI_MODEL: ${OPENAI_MODEL:-openai/gpt-4o-mini}
@@ -31,11 +33,12 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_BIND_IP:-127.0.0.1}:${BACKEND_PORT:-8000}:8000"
 
   frontend:
     build:
       context: ../frontend
+    container_name: jobby-frontend
     env_file:
       - ../.env
     environment:
@@ -43,7 +46,4 @@ services:
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
-
-volumes:
-  pg_data:
+      - "${FRONTEND_BIND_IP:-127.0.0.1}:${FRONTEND_PORT:-3000}:3000"

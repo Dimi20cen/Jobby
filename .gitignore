@@ -12,6 +12,7 @@ backend/*.db
 .env
 backend/.env
 frontend/.env.local
+runtime/
 
 # OS
 .DS_Store
