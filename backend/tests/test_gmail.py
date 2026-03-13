@@ -233,5 +233,92 @@ def test_gmail_sync_skips_low_confidence_threads(monkeypatch) -> None:
         assert links.linked == []
 
 
+def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatch) -> None:
+    monkeypatch.setenv("AUTH_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_SERVICE_TOKEN", "shared-secret")
+    monkeypatch.setenv("GMAIL_SYNC_RECENT_THREADS", "5")
+    monkeypatch.setenv("GMAIL_SYNC_SEARCH_PER_APPLICATION", "5")
+    with build_session() as db:
+        created = routes.create_application(
+            CreateApplicationRequest(
+                company_name="Bending Spoons",
+                job_title="Bending Spoons",
+                status="applied",
+                applied_date="2026-03-12",
+                location="Zurich",
+                job_url="https://bendingspoons.com/careers/example",
+                job_description="Interesting product engineering work.",
+                cv_used="Experienced software engineer shipping product improvements.",
+                notes="",
+                cover_letter="",
+                interview_questions=[],
+            ),
+            db,
+        )
+
+        def fake_get(url: str, **kwargs):
+            if url == "https://auth.dimy.dev/oauth/google/token":
+                return _json_response(
+                    {
+                        "access_token": "token",
+                        "expiry": datetime.now(UTC).isoformat(),
+                        "email": "me@example.com",
+                        "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
+                    }
+                )
+            if url == "https://auth.dimy.dev/status":
+                return _json_response(
+                    {
+                        "app_id": "personal-auth",
+                        "google": {
+                            "connected": True,
+                            "provider": "google",
+                            "email": "me@example.com",
+                            "display_name": "Me",
+                            "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
+                        },
+                    }
+                )
+            if url == gmail.GMAIL_THREADS_URL:
+                if "q" not in kwargs["params"]:
+                    return _json_response({"threads": []})
+                assert "Bending Spoons" in kwargs["params"]["q"]
+                return _json_response({"threads": [{"id": "thread-bending"}]})
+            if url == f"{gmail.GMAIL_THREADS_URL}/thread-bending":
+                return _json_response(
+                    {
+                        "id": "thread-bending",
+                        "snippet": "We reviewed your application and wanted to follow up.",
+                        "messages": [
+                            {
+                                "internalDate": str(int(datetime(2026, 3, 10, 21, 10, tzinfo=UTC).timestamp() * 1000)),
+                                "payload": {
+                                    "headers": [
+                                        {
+                                            "name": "Subject",
+                                            "value": "Dimitrios Mylonas & Bending Spoons- Regarding your application",
+                                        },
+                                        {"name": "From", "value": "Bending Spoons <no-reply@bendingspoons.com>"},
+                                        {"name": "To", "value": "me@example.com"},
+                                    ]
+                                },
+                            }
+                        ],
+                    }
+                )
+            raise AssertionError(f"Unexpected Gmail GET {url}")
+
+        monkeypatch.setattr(gmail.httpx, "get", fake_get)
+
+        sync_result = routes.gmail_sync(db)
+        assert sync_result.threads_synced == 1
+        assert sync_result.suggestions_updated == 1
+
+        links = routes.application_email_links(created.id, db)
+        assert len(links.suggested) == 1
+        assert links.suggested[0].thread_id == "thread-bending"
+        assert any("Bending Spoons" in reason for reason in links.suggested[0].match_reasons)
+
+
 def _json_response(payload):
     return httpx.Response(200, json=payload)

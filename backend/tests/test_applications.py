@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from datetime import date, timedelta
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -167,3 +168,71 @@ def test_update_requires_applied_date_for_applied_status() -> None:
             assert "applied_date" in str(exc.detail)
         else:
             raise AssertionError("Expected update_application to reject applied status without applied_date")
+
+
+def test_create_accepts_day_first_applied_date_strings() -> None:
+    with build_session() as db:
+        created = routes.create_application(
+            CreateApplicationRequest(
+                company_name="Example",
+                job_title="Analyst",
+                status="applied",
+                applied_date="13/03/2026",
+                location="Remote",
+                job_url=None,
+                job_description="Descriptive enough job description for testing.",
+                cv_used="Descriptive enough CV text for testing applied date parsing.",
+                notes="",
+                cover_letter="",
+                interview_questions=[],
+            ),
+            db,
+        )
+        assert str(created.applied_date) == "2026-03-13"
+
+
+def test_create_accepts_single_digit_iso_like_applied_date_strings() -> None:
+    with build_session() as db:
+        created = routes.create_application(
+            CreateApplicationRequest(
+                company_name="Example",
+                job_title="Analyst",
+                status="applied",
+                applied_date="2026-03-1",
+                location="Remote",
+                job_url=None,
+                job_description="Descriptive enough job description for testing.",
+                cv_used="Descriptive enough CV text for testing applied date parsing.",
+                notes="",
+                cover_letter="",
+                interview_questions=[],
+            ),
+            db,
+        )
+        assert str(created.applied_date) == "2026-03-01"
+
+
+def test_create_rejects_future_applied_dates() -> None:
+    with build_session() as db:
+        future_day = (date.today() + timedelta(days=1)).isoformat()
+        try:
+            routes.create_application(
+                CreateApplicationRequest(
+                    company_name="Example",
+                    job_title="Analyst",
+                    status="applied",
+                    applied_date=future_day,
+                    location="Remote",
+                    job_url=None,
+                    job_description="Descriptive enough job description for testing.",
+                    cv_used="Descriptive enough CV text for testing applied date validation.",
+                    notes="",
+                    cover_letter="",
+                    interview_questions=[],
+                ),
+                db,
+            )
+        except Exception as exc:
+            assert "future" in str(exc.detail).lower()
+        else:
+            raise AssertionError("Expected future applied dates to be rejected")

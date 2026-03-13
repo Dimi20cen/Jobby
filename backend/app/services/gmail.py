@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -16,6 +16,8 @@ AUTH_GOOGLE_TOKEN_PATH = "/oauth/google/token"
 GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly"
 GMAIL_THREADS_URL = "https://gmail.googleapis.com/gmail/v1/users/me/threads"
 MIN_MATCH_SCORE = 50
+DEFAULT_RECENT_THREADS = 25
+DEFAULT_SEARCH_RESULTS_PER_APPLICATION = 10
 
 
 class GmailServiceError(RuntimeError):
@@ -68,23 +70,9 @@ def build_connect_url(db: Session, return_path: str | None) -> str:
 
 def sync_threads(db: Session) -> GmailSyncResult:
     access_token = _fetch_google_access_token()
-    max_results = int(os.getenv("GMAIL_SYNC_MAX_RESULTS", "25"))
-
-    list_response = httpx.get(
-        GMAIL_THREADS_URL,
-        headers={"Authorization": f"Bearer {access_token}"},
-        params={"maxResults": max_results},
-        timeout=30,
-    )
-    if list_response.status_code >= 400:
-        raise GmailServiceError(_error_message(list_response, "Could not fetch Gmail threads."))
-
-    thread_refs = list_response.json().get("threads", [])
+    thread_ids = _collect_thread_ids(db, access_token)
     synced = 0
-    for thread_ref in thread_refs:
-        thread_id = thread_ref.get("id")
-        if not thread_id:
-            continue
+    for thread_id in thread_ids:
         detail_response = httpx.get(
             f"{GMAIL_THREADS_URL}/{thread_id}",
             headers={"Authorization": f"Bearer {access_token}"},
@@ -112,6 +100,92 @@ def sync_threads(db: Session) -> GmailSyncResult:
     db.commit()
     suggestions_updated = _refresh_link_suggestions(db)
     return GmailSyncResult(threads_synced=synced, suggestions_updated=suggestions_updated)
+
+
+def _collect_thread_ids(db: Session, access_token: str) -> list[str]:
+    thread_ids: list[str] = []
+    seen: set[str] = set()
+
+    recent_threads = _gmail_thread_refs(
+        access_token,
+        max_results=_recent_thread_limit(),
+    )
+    _append_thread_ids(thread_ids, seen, recent_threads)
+
+    applications = db.execute(
+        select(Application).where(Application.status != "archived").order_by(Application.updated_at.desc())
+    ).scalars().all()
+    per_application_limit = int(
+        os.getenv("GMAIL_SYNC_SEARCH_PER_APPLICATION", str(DEFAULT_SEARCH_RESULTS_PER_APPLICATION))
+    )
+
+    for application in applications:
+        for query in _build_application_queries(application):
+            matching_threads = _gmail_thread_refs(
+                access_token,
+                max_results=per_application_limit,
+                query=query,
+            )
+            _append_thread_ids(thread_ids, seen, matching_threads)
+
+    return thread_ids
+
+
+def _gmail_thread_refs(access_token: str, max_results: int, query: str | None = None) -> list[dict[str, Any]]:
+    params: dict[str, Any] = {"maxResults": max_results}
+    if query:
+        params["q"] = query
+    list_response = httpx.get(
+        GMAIL_THREADS_URL,
+        headers={"Authorization": f"Bearer {access_token}"},
+        params=params,
+        timeout=30,
+    )
+    if list_response.status_code >= 400:
+        raise GmailServiceError(_error_message(list_response, "Could not fetch Gmail threads."))
+    return list_response.json().get("threads", [])
+
+
+def _append_thread_ids(
+    target: list[str],
+    seen: set[str],
+    thread_refs: list[dict[str, Any]],
+) -> None:
+    for thread_ref in thread_refs:
+        thread_id = thread_ref.get("id")
+        if not thread_id or thread_id in seen:
+            continue
+        seen.add(thread_id)
+        target.append(thread_id)
+
+
+def _recent_thread_limit() -> int:
+    if os.getenv("GMAIL_SYNC_RECENT_THREADS"):
+        return int(os.getenv("GMAIL_SYNC_RECENT_THREADS", str(DEFAULT_RECENT_THREADS)))
+    return int(os.getenv("GMAIL_SYNC_MAX_RESULTS", str(DEFAULT_RECENT_THREADS)))
+
+
+def _build_application_queries(application: Application) -> list[str]:
+    queries: list[str] = []
+    company_name = application.company_name.strip()
+    job_title = application.job_title.strip()
+    anchor_day = min(application.applied_date or application.created_at.date(), date.today())
+    after_day = anchor_day - timedelta(days=45)
+    after_filter = f" after:{after_day.strftime('%Y/%m/%d')}"
+
+    if company_name:
+        queries.append(f'"{company_name}"{after_filter}')
+        queries.append(f'"{company_name}"')
+    if job_title and _normalize_text(job_title) != _normalize_text(company_name):
+        queries.append(f'"{job_title}"{after_filter}')
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for query in queries:
+        if query not in seen:
+            seen.add(query)
+            deduped.append(query)
+    return deduped
 
 
 def get_application_email_links(db: Session, application_id: UUID) -> dict[str, Any]:

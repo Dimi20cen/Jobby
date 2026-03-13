@@ -210,7 +210,7 @@ Request shape:
 ```
 
 ### `POST /integrations/gmail/sync`
-Fetches recent Gmail threads using a Google access token obtained from the shared auth service, stores normalized thread metadata, and refreshes per-application suggestions.
+Fetches recent Gmail threads plus per-application Gmail search matches using a Google access token obtained from the shared auth service, stores normalized thread metadata, and refreshes per-application suggestions.
 
 ## Error Handling
 Current error approach:

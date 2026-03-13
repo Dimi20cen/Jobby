@@ -38,10 +38,12 @@ export default function ApplicationFormFields({ form, onFieldChange }: Props) {
           />
           <InputField
             label="Applied Date"
-            type="date"
             className={form.status === 'applied' ? '' : 'field-muted'}
             value={form.applied_date || ''}
             onChange={(value) => onFieldChange('applied_date', value || null)}
+            placeholder="2026-03-13"
+            pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"
+            inputMode="numeric"
           />
         </div>
       </section>

@@ -78,6 +78,11 @@ def _get_application_or_404(db: Session, application_id: UUID) -> Application:
     return application
 
 
+def _validate_applied_date(applied_date: date | None) -> None:
+    if applied_date and applied_date > date.today():
+        raise HTTPException(status_code=400, detail="Applied date cannot be in the future.")
+
+
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(status="ok")
@@ -162,6 +167,7 @@ def create_application(
 ) -> ApplicationDetail:
     if payload.status == "applied" and payload.applied_date is None:
         raise HTTPException(status_code=400, detail="Applied applications require an applied_date.")
+    _validate_applied_date(payload.applied_date)
     application = Application(
         company_name=payload.company_name,
         job_title=payload.job_title,
@@ -208,6 +214,7 @@ def update_application(
     next_applied_date = updates.get("applied_date", application.applied_date)
     if next_status == "applied" and next_applied_date is None:
         raise HTTPException(status_code=400, detail="Applied applications require an applied_date.")
+    _validate_applied_date(next_applied_date)
     for field, value in updates.items():
         setattr(application, field, value)
     db.add(application)

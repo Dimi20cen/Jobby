@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 ApplicationStatus = Literal["draft", "applied", "interview", "offer", "rejected", "archived"]
 ApplicationEmailLinkStatus = Literal["suggested", "linked", "rejected"]
@@ -25,6 +25,11 @@ class ApplicationBase(BaseModel):
     cover_letter: str = ""
     interview_questions: list[str] = Field(default_factory=list)
 
+    @field_validator("applied_date", mode="before")
+    @classmethod
+    def parse_applied_date(cls, value: object) -> object:
+        return _parse_date_input(value)
+
 
 class CreateApplicationRequest(ApplicationBase):
     pass
@@ -42,6 +47,11 @@ class UpdateApplicationRequest(BaseModel):
     notes: str | None = None
     cover_letter: str | None = None
     interview_questions: list[str] | None = None
+
+    @field_validator("applied_date", mode="before")
+    @classmethod
+    def parse_applied_date(cls, value: object) -> object:
+        return _parse_date_input(value)
 
 
 class ApplicationSummary(BaseModel):
@@ -122,3 +132,33 @@ class ApplicationEmailLinksResponse(BaseModel):
     suggested: list[ApplicationEmailThread]
     linked: list[ApplicationEmailThread]
     rejected_thread_ids: list[str]
+
+
+def _parse_date_input(value: object) -> object:
+    if value in (None, ""):
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        try:
+            return date.fromisoformat(text)
+        except ValueError:
+            pass
+        iso_parts = text.split("-")
+        if len(iso_parts) == 3 and all(part.isdigit() for part in iso_parts):
+            try:
+                year, month, day = (int(part) for part in iso_parts)
+                return date(year, month, day)
+            except ValueError:
+                pass
+        for pattern in ("%d/%m/%Y", "%d-%m-%Y"):
+            try:
+                return datetime.strptime(text, pattern).date()
+            except ValueError:
+                continue
+    raise ValueError("applied_date must be YYYY-MM-DD, YYYY-M-D, or day-first (DD/MM/YYYY).")

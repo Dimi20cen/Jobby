@@ -7,6 +7,9 @@ type BaseProps = {
   required?: boolean;
   description?: string;
   className?: string;
+  placeholder?: string;
+  pattern?: string;
+  inputMode?: 'text' | 'numeric';
 };
 
 type InputProps = BaseProps & {
@@ -33,7 +36,18 @@ function wrapLabel(label: string, description: string | undefined, className: st
   );
 }
 
-export function InputField({ label, value, onChange, required, description, className, type = 'text' }: InputProps) {
+export function InputField({
+  label,
+  value,
+  onChange,
+  required,
+  description,
+  className,
+  placeholder,
+  pattern,
+  inputMode,
+  type = 'text'
+}: InputProps) {
   return wrapLabel(
     label,
     description,
@@ -43,6 +57,9 @@ export function InputField({ label, value, onChange, required, description, clas
       value={value}
       onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
       required={required}
+      placeholder={placeholder}
+      pattern={pattern}
+      inputMode={inputMode}
     />
   );
 }

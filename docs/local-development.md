@@ -110,7 +110,8 @@ The extension should point to:
 - `AUTH_BASE_URL`
 - `AUTH_SERVICE_TOKEN`
 - `FRONTEND_BASE_URL`
-- `GMAIL_SYNC_MAX_RESULTS`
+- `GMAIL_SYNC_RECENT_THREADS`
+- `GMAIL_SYNC_SEARCH_PER_APPLICATION`
 
 ## Hermes Configuration
 Jobby no longer talks to OpenAI-compatible providers or Codex directly. The backend sends structured generation requests to Hermes, and Hermes owns provider routing.
@@ -177,7 +178,7 @@ make logs
 - deploy and configure the shared auth service at `https://auth.dimy.dev`
 - add `AUTH_BASE_URL` and `AUTH_SERVICE_TOKEN` to Jobby `.env`
 - connect Google through the application detail page, which now starts the flow at the shared auth service
-- use `Refresh Threads` on the application page to fetch recent recruiter mail and suggestion updates
+- use `Refresh Threads` on the application page to fetch recent recruiter mail plus targeted company searches for saved applications
 
 ## Common Failure Modes
 
