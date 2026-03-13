@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 ApplicationStatus = Literal["draft", "applied", "interview", "offer", "rejected", "archived"]
+ApplicationEmailLinkStatus = Literal["suggested", "linked", "rejected"]
 
 
 class HealthResponse(BaseModel):
@@ -80,3 +81,44 @@ class ApplicationActivityPoint(BaseModel):
 
 class ApplicationActivityResponse(BaseModel):
     items: list[ApplicationActivityPoint]
+
+
+class GmailConnectionStatus(BaseModel):
+    connected: bool
+    email_address: str | None
+    connected_at: datetime | None
+    has_pending_auth: bool
+
+
+class GmailConnectStartRequest(BaseModel):
+    return_path: str | None = "/"
+
+
+class GmailConnectStartResponse(BaseModel):
+    auth_url: str
+
+
+class GmailSyncResponse(BaseModel):
+    connection: GmailConnectionStatus
+    threads_synced: int
+    suggestions_updated: int
+
+
+class ApplicationEmailThread(BaseModel):
+    thread_id: str
+    subject: str
+    participants_summary: str
+    snippet: str
+    last_message_at: datetime | None
+    message_count: int
+    gmail_url: str
+    status: ApplicationEmailLinkStatus
+    match_score: int
+    match_reasons: list[str]
+
+
+class ApplicationEmailLinksResponse(BaseModel):
+    connection: GmailConnectionStatus
+    suggested: list[ApplicationEmailThread]
+    linked: list[ApplicationEmailThread]
+    rejected_thread_ids: list[str]

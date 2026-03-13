@@ -96,6 +96,47 @@ Returns the full application detail payload.
 ### `GET /applications/{id}`
 Returns the full editable application record.
 
+### `GET /applications/{id}/email-links`
+Returns Gmail thread suggestions and confirmed links for an application.
+
+Response shape:
+
+```json
+{
+  "connection": {
+    "connected": true,
+    "email_address": "person@example.com",
+    "connected_at": "2026-03-13T10:00:00Z",
+    "has_pending_auth": false
+  },
+  "suggested": [
+    {
+      "thread_id": "189f...",
+      "subject": "OpenAI AI Engineer application update",
+      "participants_summary": "Recruiting <jobs@openai.com>",
+      "snippet": "Thanks for applying...",
+      "last_message_at": "2026-03-10T09:00:00Z",
+      "message_count": 2,
+      "gmail_url": "https://mail.google.com/...",
+      "status": "suggested",
+      "match_score": 85,
+      "match_reasons": ["Mentions OpenAI", "Recent to application timeline"]
+    }
+  ],
+  "linked": [],
+  "rejected_thread_ids": []
+}
+```
+
+### `POST /applications/{id}/email-links/{thread_id}/link`
+Marks a Gmail thread as linked to the application.
+
+### `POST /applications/{id}/email-links/{thread_id}/reject`
+Marks a Gmail thread suggestion as rejected.
+
+### `DELETE /applications/{id}/email-links/{thread_id}`
+Removes an existing Gmail thread link or suggestion.
+
 ### `PUT /applications/{id}`
 Updates any editable fields on the application.
 
@@ -148,6 +189,28 @@ Defines the SQLAlchemy `Application` model.
 
 ### `backend/app/services/llm.py`
 Encapsulates Hermes gateway calls and response normalization for application-specific generation.
+
+### `backend/app/services/gmail.py`
+Owns Gmail OAuth, thread sync, heuristic matching, and application-thread link state.
+
+## Gmail Integration Endpoints
+
+### `GET /integrations/gmail/status`
+Returns whether a local Gmail account is connected.
+
+### `POST /integrations/gmail/connect/start`
+Starts the shared `auth.dimy.dev` Google OAuth flow and returns an `auth_url`.
+
+Request shape:
+
+```json
+{
+  "return_path": "/applications/123"
+}
+```
+
+### `POST /integrations/gmail/sync`
+Fetches recent Gmail threads using a Google access token obtained from the shared auth service, stores normalized thread metadata, and refreshes per-application suggestions.
 
 ## Error Handling
 Current error approach:

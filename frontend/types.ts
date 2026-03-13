@@ -35,6 +35,45 @@ export type ApplicationActivityPoint = {
   count: number;
 };
 
+export type GmailConnectionStatus = {
+  connected: boolean;
+  email_address: string | null;
+  connected_at: string | null;
+  has_pending_auth: boolean;
+};
+
+export type ApplicationEmailLinkStatus = 'suggested' | 'linked' | 'rejected';
+
+export type ApplicationEmailThread = {
+  thread_id: string;
+  subject: string;
+  participants_summary: string;
+  snippet: string;
+  last_message_at: string | null;
+  message_count: number;
+  gmail_url: string;
+  status: ApplicationEmailLinkStatus;
+  match_score: number;
+  match_reasons: string[];
+};
+
+export type ApplicationEmailLinks = {
+  connection: GmailConnectionStatus;
+  suggested: ApplicationEmailThread[];
+  linked: ApplicationEmailThread[];
+  rejected_thread_ids: string[];
+};
+
+export type GmailConnectStartResponse = {
+  auth_url: string;
+};
+
+export type GmailSyncResponse = {
+  connection: GmailConnectionStatus;
+  threads_synced: number;
+  suggestions_updated: number;
+};
+
 export type CreateApplicationRequest = {
   company_name: string;
   job_title: string;

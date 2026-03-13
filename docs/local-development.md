@@ -106,6 +106,12 @@ The extension should point to:
 - `HERMES_MODEL`
 - `HERMES_TIMEOUT_SECONDS`
 
+### Gmail integration
+- `AUTH_BASE_URL`
+- `AUTH_SERVICE_TOKEN`
+- `FRONTEND_BASE_URL`
+- `GMAIL_SYNC_MAX_RESULTS`
+
 ## Hermes Configuration
 Jobby no longer talks to OpenAI-compatible providers or Codex directly. The backend sends structured generation requests to Hermes, and Hermes owns provider routing.
 
@@ -167,6 +173,12 @@ make logs
 - local schema patching is done in `backend/app/db/migrations.py`
 - for long-term shared environments, move to a formal migration flow
 
+## Gmail Setup Notes
+- deploy and configure the shared auth service at `https://auth.dimy.dev`
+- add `AUTH_BASE_URL` and `AUTH_SERVICE_TOKEN` to Jobby `.env`
+- connect Google through the application detail page, which now starts the flow at the shared auth service
+- use `Refresh Threads` on the application page to fetch recent recruiter mail and suggestion updates
+
 ## Common Failure Modes
 
 ### Frontend build fails on missing ESLint
@@ -187,3 +199,9 @@ Check:
 The application must already contain:
 - a sufficiently long `job_description`
 - a sufficiently long `cv_used`
+
+### Gmail connect or sync fails
+Check:
+- `AUTH_BASE_URL` points to the running shared auth service
+- `AUTH_SERVICE_TOKEN` matches the token configured on the shared auth service
+- `FRONTEND_BASE_URL` points to your running Next.js app

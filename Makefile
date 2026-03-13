@@ -30,10 +30,10 @@ dev-db:
 	$(COMPOSE) up postgres
 
 dev-backend:
-	cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	cd backend && set -a && . ../.env && set +a && DATABASE_URL=$${DATABASE_URL/@postgres:/@127.0.0.1:} uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-frontend:
-	cd frontend && npm run dev
+	cd frontend && set -a && . ../.env && set +a && npm run dev
 
 dev:
 	bash scripts/dev.sh

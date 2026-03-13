@@ -4,13 +4,26 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEV_COMPOSE=(docker compose -f "$ROOT_DIR/infra/docker-compose.dev.yml" --env-file "$ROOT_DIR/.env")
-BACKEND_PORT="${BACKEND_PORT:-8000}"
-FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
 if [[ ! -f "$ROOT_DIR/.env" ]]; then
   echo "[dev] Missing .env file. Create it from .env.example first." >&2
   exit 1
 fi
+
+set -a
+# shellcheck disable=SC1090
+source "$ROOT_DIR/.env"
+set +a
+
+# Local backend/frontend processes cannot resolve the Compose service hostname.
+# Rewrite the common Docker-only Postgres hostname to localhost for the hybrid dev loop.
+if [[ "${DATABASE_URL:-}" == *"@postgres:"* ]]; then
+  DATABASE_URL="${DATABASE_URL/@postgres:/@127.0.0.1:}"
+  export DATABASE_URL
+fi
+
+BACKEND_PORT="${BACKEND_PORT:-8000}"
+FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
 if ! command -v uvicorn >/dev/null 2>&1; then
   echo "[dev] Missing uvicorn. Run 'make install' first." >&2

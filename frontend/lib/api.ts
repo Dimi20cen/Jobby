@@ -1,8 +1,12 @@
 import {
   ApplicationActivityPoint,
   ApplicationDetail,
+  ApplicationEmailLinks,
   ApplicationSummary,
   CreateApplicationRequest,
+  GmailConnectStartResponse,
+  GmailConnectionStatus,
+  GmailSyncResponse,
   UpdateApplicationRequest
 } from '@/types';
 
@@ -41,6 +45,67 @@ export async function getApplication(id: string): Promise<ApplicationDetail> {
     await fetch(`${API_BASE}/applications/${id}`, { cache: 'no-store' }),
     'Could not fetch application'
   );
+}
+
+export async function getGmailStatus(): Promise<GmailConnectionStatus> {
+  return parseResponse<GmailConnectionStatus>(
+    await fetch(`${API_BASE}/integrations/gmail/status`, { cache: 'no-store' }),
+    'Could not fetch Gmail status'
+  );
+}
+
+export async function startGmailConnect(returnPath: string): Promise<GmailConnectStartResponse> {
+  return parseResponse<GmailConnectStartResponse>(
+    await fetch(`${API_BASE}/integrations/gmail/connect/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ return_path: returnPath })
+    }),
+    'Could not start Gmail connect flow'
+  );
+}
+
+export async function syncGmail(): Promise<GmailSyncResponse> {
+  return parseResponse<GmailSyncResponse>(
+    await fetch(`${API_BASE}/integrations/gmail/sync`, {
+      method: 'POST'
+    }),
+    'Could not refresh Gmail threads'
+  );
+}
+
+export async function getApplicationEmailLinks(id: string): Promise<ApplicationEmailLinks> {
+  return parseResponse<ApplicationEmailLinks>(
+    await fetch(`${API_BASE}/applications/${id}/email-links`, { cache: 'no-store' }),
+    'Could not fetch Gmail thread links'
+  );
+}
+
+async function mutateApplicationEmailLink(
+  id: string,
+  threadId: string,
+  method: 'POST' | 'DELETE',
+  action?: 'link' | 'reject'
+): Promise<ApplicationEmailLinks> {
+  const suffix = action ? `/${action}` : '';
+  return parseResponse<ApplicationEmailLinks>(
+    await fetch(`${API_BASE}/applications/${id}/email-links/${threadId}${suffix}`, {
+      method
+    }),
+    'Could not update Gmail thread links'
+  );
+}
+
+export async function linkApplicationEmailThread(id: string, threadId: string): Promise<ApplicationEmailLinks> {
+  return mutateApplicationEmailLink(id, threadId, 'POST', 'link');
+}
+
+export async function rejectApplicationEmailThread(id: string, threadId: string): Promise<ApplicationEmailLinks> {
+  return mutateApplicationEmailLink(id, threadId, 'POST', 'reject');
+}
+
+export async function unlinkApplicationEmailThread(id: string, threadId: string): Promise<ApplicationEmailLinks> {
+  return mutateApplicationEmailLink(id, threadId, 'DELETE');
 }
 
 export async function createApplication(payload: CreateApplicationRequest): Promise<ApplicationDetail> {

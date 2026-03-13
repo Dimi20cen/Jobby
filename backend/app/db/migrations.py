@@ -4,7 +4,8 @@ from sqlalchemy.engine import Engine
 
 def migrate_application_schema(engine: Engine) -> None:
     inspector = inspect(engine)
-    if "applications" not in inspector.get_table_names():
+    table_names = set(inspector.get_table_names())
+    if "applications" not in table_names:
         return
 
     existing_columns = {column["name"] for column in inspector.get_columns("applications")}
@@ -44,3 +45,33 @@ def migrate_application_schema(engine: Engine) -> None:
         connection.execute(text("UPDATE applications SET cv_used = COALESCE(cv_used, '')"))
         connection.execute(text("UPDATE applications SET cover_letter = COALESCE(cover_letter, '')"))
         connection.execute(text("UPDATE applications SET updated_at = COALESCE(updated_at, created_at)"))
+
+        if "gmail_connections" in table_names:
+            connection.execute(
+                text(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS ix_gmail_connections_email_address"
+                    " ON gmail_connections (email_address)"
+                )
+            )
+
+        if "email_threads" in table_names:
+            connection.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_email_threads_last_message_at"
+                    " ON email_threads (last_message_at)"
+                )
+            )
+
+        if "application_email_links" in table_names:
+            connection.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_application_email_links_status"
+                    " ON application_email_links (status)"
+                )
+            )
+            connection.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_application_email_links_updated_at"
+                    " ON application_email_links (updated_at)"
+                )
+            )

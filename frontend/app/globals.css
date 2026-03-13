@@ -87,6 +87,7 @@ p {
 
 .action-row,
 .editor-layout,
+.editor-main-column,
 .section-heading,
 .page-header,
 .form-grid,
@@ -137,6 +138,7 @@ p {
 .editor-form-panel,
 .action-stack,
 .ai-panel,
+.gmail-panel,
 .activity-shell,
 .empty-state,
 .table-primary {
@@ -167,6 +169,10 @@ p {
 
 .ai-metrics {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.editor-main-column {
+  align-content: start;
 }
 
 .page-header-copy p {
@@ -316,6 +322,71 @@ button {
 
 .error {
   color: var(--danger-text);
+}
+
+.gmail-panel-heading,
+.gmail-thread-header,
+.gmail-panel-actions,
+.gmail-thread-actions,
+.gmail-thread-reasons {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.gmail-section,
+.gmail-thread-list,
+.gmail-thread-card,
+.gmail-thread-copy {
+  display: grid;
+  gap: 12px;
+}
+
+.gmail-thread-card {
+  background: linear-gradient(180deg, rgba(247, 248, 240, 0.9) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+
+.gmail-thread-header {
+  justify-content: space-between;
+}
+
+.gmail-thread-score,
+.gmail-reason-chip {
+  background: rgba(122, 170, 206, 0.14);
+  border: 1px solid rgba(122, 170, 206, 0.24);
+  border-radius: 999px;
+  color: var(--brand-900);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 10px;
+}
+
+.gmail-thread-actions {
+  justify-content: flex-start;
+}
+
+@media (min-width: 960px) {
+  .editor-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    align-items: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .ai-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-bar,
+  .gmail-thread-header,
+  .gmail-thread-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 
 .applications-panel,

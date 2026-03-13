@@ -96,6 +96,22 @@ Would separate stored CVs, cover letters, and generated variants from the applic
 ### `email_threads`
 Would support Gmail linking and message previews per application.
 
+The current implementation stores:
+- Gmail thread id
+- subject
+- participants summary
+- snippet
+- last message timestamp
+- message count
+- Gmail web URL
+
+Thread-to-application state lives in `application_email_links`, which stores:
+- `application_id`
+- `thread_id`
+- `status` (`suggested`, `linked`, `rejected`)
+- `match_score`
+- `match_reasons`
+
 ### `job_sources`
 Would support extension ingestion and normalized source metadata like:
 - site name

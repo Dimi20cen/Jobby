@@ -20,6 +20,7 @@ Jobby pulls that workflow into one product-shaped app.
 - view applications in a dashboard with status filtering
 - see a daily activity graph for momentum
 - generate cover letters, tailored bullets, and interview questions for a saved application
+- connect one Gmail account locally, refresh recruiter threads, and link them to an application
 - capture jobs from the Chrome extension and reopen/update the saved application from the popup
 
 ## Current Status

@@ -6,10 +6,24 @@ import { useRouter } from 'next/navigation';
 import AIWorkspace from '@/components/AIWorkspace';
 import ApplicationActions from '@/components/ApplicationActions';
 import ApplicationFormFields from '@/components/ApplicationFormFields';
+import GmailPanel from '@/components/GmailPanel';
 import ApplicationHeader from '@/components/ApplicationHeader';
 import Card from '@/components/ui/Card';
-import { createApplication, deleteApplication, generateApplication, getApplication, updateApplication } from '@/lib/api';
 import {
+  createApplication,
+  deleteApplication,
+  generateApplication,
+  getApplication,
+  getApplicationEmailLinks,
+  linkApplicationEmailThread,
+  rejectApplicationEmailThread,
+  startGmailConnect,
+  syncGmail,
+  unlinkApplicationEmailThread,
+  updateApplication
+} from '@/lib/api';
+import {
+  ApplicationEmailLinks,
   ApplicationDetail,
   CreateApplicationRequest,
   UpdateApplicationRequest
@@ -55,9 +69,13 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
   const existingApplicationId = applicationId ?? null;
   const [form, setForm] = useState<CreateApplicationRequest>(defaultForm);
   const [detail, setDetail] = useState<ApplicationDetail | null>(null);
+  const [emailLinks, setEmailLinks] = useState<ApplicationEmailLinks | null>(null);
   const [loading, setLoading] = useState(!isNew);
+  const [gmailLoading, setGmailLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [syncingGmail, setSyncingGmail] = useState(false);
+  const [mutatingThreadId, setMutatingThreadId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState(JSON.stringify(defaultForm));
@@ -92,6 +110,43 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
       active = false;
     };
   }, [existingApplicationId, isNew]);
+
+  useEffect(() => {
+    if (!existingApplicationId || isNew) {
+      setGmailLoading(false);
+      return;
+    }
+    const stableApplicationId = existingApplicationId;
+    let active = true;
+    async function loadEmailLinks(): Promise<void> {
+      setGmailLoading(true);
+      try {
+        const nextLinks = await getApplicationEmailLinks(stableApplicationId);
+        if (!active) return;
+        setEmailLinks(nextLinks);
+      } catch (err) {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : 'Could not load Gmail links');
+      } finally {
+        if (active) {
+          setGmailLoading(false);
+        }
+      }
+    }
+    loadEmailLinks();
+    return () => {
+      active = false;
+    };
+  }, [existingApplicationId, isNew]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authState = params.get('auth');
+    if (authState === 'connected') {
+      setNotice('Gmail connected. Refresh threads to load recruiter emails.');
+      router.replace(window.location.pathname);
+    }
+  }, [router]);
 
   function setField<K extends keyof CreateApplicationRequest>(key: K, value: CreateApplicationRequest[K]): void {
     setForm((current) => ({ ...current, [key]: value }));
@@ -153,6 +208,57 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
     }
   }
 
+  async function handleGmailConnect(): Promise<void> {
+    setError(null);
+    try {
+      const response = await startGmailConnect(window.location.pathname);
+      window.location.href = response.auth_url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start Gmail connect flow');
+    }
+  }
+
+  async function handleGmailSync(): Promise<void> {
+    setSyncingGmail(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const syncResult = await syncGmail();
+      if (existingApplicationId) {
+        setEmailLinks(await getApplicationEmailLinks(existingApplicationId));
+      }
+      setNotice(
+        `Gmail refreshed. Synced ${syncResult.threads_synced} threads and updated ${syncResult.suggestions_updated} suggestions.`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not refresh Gmail threads');
+    } finally {
+      setSyncingGmail(false);
+    }
+  }
+
+  async function handleEmailLinkAction(
+    threadId: string,
+    action: 'link' | 'reject' | 'unlink'
+  ): Promise<void> {
+    if (!existingApplicationId) return;
+    setMutatingThreadId(threadId);
+    setError(null);
+    try {
+      const nextLinks =
+        action === 'link'
+          ? await linkApplicationEmailThread(existingApplicationId, threadId)
+          : action === 'reject'
+            ? await rejectApplicationEmailThread(existingApplicationId, threadId)
+            : await unlinkApplicationEmailThread(existingApplicationId, threadId);
+      setEmailLinks(nextLinks);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update Gmail thread link');
+    } finally {
+      setMutatingThreadId(null);
+    }
+  }
+
   async function handleDelete(): Promise<void> {
     if (!existingApplicationId) return;
     if (!window.confirm('Delete this application? This cannot be undone.')) {
@@ -198,18 +304,33 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
           </Card>
         ) : null}
         <div className="editor-layout">
-          <Card as="form" className="editor-form-panel" onSubmit={handleSubmit}>
-            <ApplicationFormFields form={form} onFieldChange={setField} />
-            <ApplicationActions
+          <div className="editor-main-column">
+            <Card as="form" className="editor-form-panel" onSubmit={handleSubmit}>
+              <ApplicationFormFields form={form} onFieldChange={setField} />
+              <ApplicationActions
+                isNew={isNew}
+                saving={saving}
+                generating={generating}
+                canGenerate={canGenerate}
+                isDirty={isDirty}
+                onGenerate={handleGenerate}
+                onDelete={handleDelete}
+              />
+            </Card>
+
+            <GmailPanel
               isNew={isNew}
-              saving={saving}
-              generating={generating}
-              canGenerate={canGenerate}
-              isDirty={isDirty}
-              onGenerate={handleGenerate}
-              onDelete={handleDelete}
+              data={emailLinks}
+              loading={gmailLoading}
+              syncing={syncingGmail}
+              mutatingThreadId={mutatingThreadId}
+              onConnect={handleGmailConnect}
+              onSync={handleGmailSync}
+              onLink={(threadId) => void handleEmailLinkAction(threadId, 'link')}
+              onReject={(threadId) => void handleEmailLinkAction(threadId, 'reject')}
+              onUnlink={(threadId) => void handleEmailLinkAction(threadId, 'unlink')}
             />
-          </Card>
+          </div>
 
           <AIWorkspace
             isNew={isNew}
