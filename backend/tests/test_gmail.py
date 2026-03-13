@@ -47,7 +47,7 @@ def test_gmail_connect_start_and_callback(monkeypatch) -> None:
         assert url == "https://auth.dimy.dev/status"
         return _json_response(
             {
-                "app_id": "personal-auth",
+                "app_id": "janus",
                 "google": {
                     "connected": True,
                     "provider": "google",
@@ -104,7 +104,7 @@ def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
             if url == "https://auth.dimy.dev/status":
                 return _json_response(
                     {
-                        "app_id": "personal-auth",
+                        "app_id": "janus",
                         "google": {
                             "connected": True,
                             "provider": "google",
@@ -190,7 +190,7 @@ def test_gmail_sync_skips_low_confidence_threads(monkeypatch) -> None:
             if url == "https://auth.dimy.dev/status":
                 return _json_response(
                     {
-                        "app_id": "personal-auth",
+                        "app_id": "janus",
                         "google": {
                             "connected": True,
                             "provider": "google",
@@ -269,7 +269,7 @@ def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatc
             if url == "https://auth.dimy.dev/status":
                 return _json_response(
                     {
-                        "app_id": "personal-auth",
+                        "app_id": "janus",
                         "google": {
                             "connected": True,
                             "provider": "google",
