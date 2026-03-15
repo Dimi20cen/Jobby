@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: jobby-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -20,6 +21,7 @@ services:
     build:
       context: ../backend
     container_name: jobby-backend
+    restart: unless-stopped
     env_file:
       - ../.env
     environment:
@@ -41,6 +43,7 @@ services:
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
     container_name: jobby-frontend
+    restart: unless-stopped
     env_file:
       - ../.env
     environment:

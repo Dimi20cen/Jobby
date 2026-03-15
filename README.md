@@ -65,6 +65,8 @@ For a private deployment on `srv` similar to HQ:
    - `HERMES_BASE_URL=http://100.124.230.107:8010`
 4. Run `/usr/bin/bash /srv/stacks/jobby/bin/deploy.sh`
 
+After the first successful deploy, the `postgres`, `backend`, and `frontend` containers are configured with Docker `restart: unless-stopped`, so they come back automatically after host reboot unless you intentionally stop them.
+
 This keeps Jobby private while still using Janus for the public Google OAuth callback.
 
 ## Better Dev Loop

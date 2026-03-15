@@ -197,6 +197,7 @@ make logs
 - deploy script: `/srv/stacks/jobby/bin/deploy.sh`
 - compose file: `infra/docker-compose.yml`
 - runtime data path: `runtime/postgres`
+- boot behavior: services use Docker `restart: unless-stopped`, so they should return after reboot once deployed successfully
 - recommended private bind values on `srv`:
   - `FRONTEND_BIND_IP=100.124.230.107`
   - `BACKEND_BIND_IP=100.124.230.107`
