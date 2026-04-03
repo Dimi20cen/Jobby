@@ -210,7 +210,29 @@ Request shape:
 ```
 
 ### `POST /integrations/gmail/sync`
-Fetches recent Gmail threads plus per-application Gmail search matches using a Google access token obtained from the shared auth service, stores normalized thread metadata, and refreshes per-application suggestions.
+Starts a background Gmail sync job and returns `202 Accepted` with the job payload. The job fetches recent Gmail threads plus per-application Gmail search matches using a Google access token obtained from the shared auth service, stores normalized thread metadata, and refreshes per-application suggestions.
+
+Response shape:
+
+```json
+{
+  "id": "uuid",
+  "status": "queued",
+  "threads_synced": null,
+  "suggestions_updated": null,
+  "error": null,
+  "started_at": null,
+  "finished_at": null,
+  "created_at": "2026-04-03T09:00:00Z",
+  "updated_at": "2026-04-03T09:00:00Z"
+}
+```
+
+### `GET /integrations/gmail/sync/{job_id}`
+Returns the current status of a Gmail sync job. Status values are `queued`, `running`, `succeeded`, and `failed`.
+
+### `GET /integrations/gmail/sync/active`
+Returns the currently active Gmail sync job for the connected account, or `null` when no sync is in progress. The frontend uses this on page load so a refresh-in-progress survives browser reloads.
 
 In private deployments, this sync path can use an internal Janus base URL while the browser OAuth start flow still uses the public `https://auth.dimy.dev` entrypoint.
 

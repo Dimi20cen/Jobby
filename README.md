@@ -30,6 +30,7 @@ The current MVP includes:
 - dashboard home page
 - application detail editor
 - AI generation inside an application record
+- Gmail integration for recruiter-thread refresh, suggestions, and linking
 - Chrome extension MVP for job-board capture
 - local-first Docker setup
 - Hermes-backed AI generation for local use and future multi-app reuse
@@ -37,7 +38,6 @@ The current MVP includes:
 Jobby now delegates AI generation to the Hermes gateway, which can route requests to OpenAI-compatible providers or Codex-backed execution behind one stable internal API.
 
 Planned next:
-- Gmail integration for application-related emails
 - better retrieval and application intelligence
 
 ## Quick Start

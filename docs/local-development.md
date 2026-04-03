@@ -191,7 +191,9 @@ make logs
 - deploy and configure the shared auth service at `https://auth.dimy.dev`
 - add `AUTH_PUBLIC_BASE_URL` and `AUTH_SERVICE_TOKEN` to Jobby `.env`
 - connect Google through the application detail page, which now starts the flow at the shared auth service
-- use `Refresh Threads` on the application page to fetch recent recruiter mail plus targeted company searches for saved applications
+- use `Refresh Threads` on the application page to start a background sync job
+- while the job runs, the application page keeps polling status and updates recruiter-thread suggestions when the sync finishes
+- if you reload during a sync, the page resumes the in-progress state by checking the active Gmail sync job on load
 
 For private `srv` deployments, set:
 - `AUTH_PUBLIC_BASE_URL=https://auth.dimy.dev`
