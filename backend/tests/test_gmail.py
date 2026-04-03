@@ -2,12 +2,15 @@ from contextlib import contextmanager
 from datetime import UTC, datetime
 
 import httpx
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.api import routes
 from app.db.models import Base, EmailThread, GmailSyncJob
+from app.db.session import get_db
 from app.schemas import CreateApplicationRequest, GmailConnectStartRequest
 from app.services import gmail
 
@@ -109,6 +112,31 @@ def test_gmail_sync_active_returns_running_job(monkeypatch) -> None:
         assert active is not None
         assert active.id == created.id
         assert active.status == "running"
+
+
+def test_gmail_sync_active_http_route_is_not_shadowed_by_job_id() -> None:
+    app = FastAPI()
+    app.include_router(routes.router)
+
+    with build_session() as db:
+        job = GmailSyncJob(status="running")
+        db.add(job)
+        db.commit()
+        db.refresh(job)
+
+        def override_get_db():
+            try:
+                yield db
+            finally:
+                pass
+
+        app.dependency_overrides[get_db] = override_get_db
+        client = TestClient(app)
+        response = client.get("/integrations/gmail/sync/active")
+
+        assert response.status_code == 200
+        assert response.json()["id"] == str(job.id)
+        assert response.json()["status"] == "running"
 
 
 def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:

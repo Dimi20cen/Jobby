@@ -129,19 +129,19 @@ def gmail_sync(db: Session = Depends(get_db)) -> GmailSyncJobResponse:
     return _to_gmail_sync_job(job)
 
 
-@router.get("/integrations/gmail/sync/{job_id}", response_model=GmailSyncJobResponse)
-def gmail_sync_status(job_id: UUID, db: Session = Depends(get_db)) -> GmailSyncJobResponse:
-    job = get_sync_job(db, job_id)
-    if job is None:
-        raise HTTPException(status_code=404, detail="Gmail sync job not found")
-    return _to_gmail_sync_job(job)
-
-
 @router.get("/integrations/gmail/sync/active", response_model=GmailSyncJobResponse | None)
 def gmail_sync_active(db: Session = Depends(get_db)) -> GmailSyncJobResponse | None:
     job = get_active_sync_job(db)
     if job is None:
         return None
+    return _to_gmail_sync_job(job)
+
+
+@router.get("/integrations/gmail/sync/{job_id}", response_model=GmailSyncJobResponse)
+def gmail_sync_status(job_id: UUID, db: Session = Depends(get_db)) -> GmailSyncJobResponse:
+    job = get_sync_job(db, job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Gmail sync job not found")
     return _to_gmail_sync_job(job)
 
 
