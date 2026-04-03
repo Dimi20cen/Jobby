@@ -15,10 +15,11 @@ import {
   generateApplication,
   getApplication,
   getApplicationEmailLinks,
+  getGmailSyncJob,
   linkApplicationEmailThread,
   rejectApplicationEmailThread,
   startGmailConnect,
-  syncGmail,
+  startGmailSync,
   unlinkApplicationEmailThread,
   updateApplication
 } from '@/lib/api';
@@ -26,6 +27,7 @@ import {
   ApplicationEmailLinks,
   ApplicationDetail,
   CreateApplicationRequest,
+  GmailSyncJob,
   UpdateApplicationRequest
 } from '@/types';
 
@@ -70,6 +72,7 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
   const [form, setForm] = useState<CreateApplicationRequest>(defaultForm);
   const [detail, setDetail] = useState<ApplicationDetail | null>(null);
   const [emailLinks, setEmailLinks] = useState<ApplicationEmailLinks | null>(null);
+  const [gmailSyncJob, setGmailSyncJob] = useState<GmailSyncJob | null>(null);
   const [loading, setLoading] = useState(!isNew);
   const [gmailLoading, setGmailLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
@@ -148,6 +151,53 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
     }
   }, [router]);
 
+  useEffect(() => {
+    if (!gmailSyncJob || !['queued', 'running'].includes(gmailSyncJob.status)) {
+      return;
+    }
+
+    let active = true;
+    const jobId = gmailSyncJob.id;
+
+    async function poll(): Promise<void> {
+      try {
+        const nextJob = await getGmailSyncJob(jobId);
+        if (!active) return;
+        setGmailSyncJob(nextJob);
+
+        if (nextJob.status === 'succeeded') {
+          setSyncingGmail(false);
+          if (existingApplicationId) {
+            const nextLinks = await getApplicationEmailLinks(existingApplicationId);
+            if (!active) return;
+            setEmailLinks(nextLinks);
+          }
+          setNotice(
+            `Gmail refreshed. Synced ${nextJob.threads_synced ?? 0} threads and updated ${nextJob.suggestions_updated ?? 0} suggestions.`
+          );
+        } else if (nextJob.status === 'failed') {
+          setSyncingGmail(false);
+          setError(nextJob.error || 'Could not refresh Gmail threads');
+        }
+      } catch (err) {
+        if (!active) return;
+        setSyncingGmail(false);
+        setError(err instanceof Error ? err.message : 'Could not refresh Gmail threads');
+      }
+    }
+
+    const intervalId = window.setInterval(() => {
+      void poll();
+    }, 2000);
+
+    void poll();
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [gmailSyncJob, existingApplicationId]);
+
   function setField<K extends keyof CreateApplicationRequest>(key: K, value: CreateApplicationRequest[K]): void {
     setForm((current) => ({ ...current, [key]: value }));
   }
@@ -221,18 +271,16 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
   async function handleGmailSync(): Promise<void> {
     setSyncingGmail(true);
     setError(null);
-    setNotice(null);
+    setNotice('Gmail refresh started. You can keep working while threads update in the background.');
     try {
-      const syncResult = await syncGmail();
-      if (existingApplicationId) {
-        setEmailLinks(await getApplicationEmailLinks(existingApplicationId));
+      const job = await startGmailSync();
+      setGmailSyncJob(job);
+      if (job.status === 'failed') {
+        setSyncingGmail(false);
+        setError(job.error || 'Could not refresh Gmail threads');
       }
-      setNotice(
-        `Gmail refreshed. Synced ${syncResult.threads_synced} threads and updated ${syncResult.suggestions_updated} suggestions.`
-      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not refresh Gmail threads');
-    } finally {
       setSyncingGmail(false);
     }
   }
@@ -323,6 +371,13 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
               data={emailLinks}
               loading={gmailLoading}
               syncing={syncingGmail}
+              syncMessage={
+                syncingGmail
+                  ? gmailSyncJob?.status === 'queued'
+                    ? 'Gmail refresh is queued and will start shortly.'
+                    : 'Gmail refresh is running in the background. This page will update when it finishes.'
+                  : null
+              }
               mutatingThreadId={mutatingThreadId}
               onConnect={handleGmailConnect}
               onSync={handleGmailSync}

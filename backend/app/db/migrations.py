@@ -75,3 +75,17 @@ def migrate_application_schema(engine: Engine) -> None:
                     " ON application_email_links (updated_at)"
                 )
             )
+
+        if "gmail_sync_jobs" in table_names:
+            connection.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_gmail_sync_jobs_status"
+                    " ON gmail_sync_jobs (status)"
+                )
+            )
+            connection.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_gmail_sync_jobs_created_at"
+                    " ON gmail_sync_jobs (created_at)"
+                )
+            )

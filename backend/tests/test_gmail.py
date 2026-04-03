@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.api import routes
-from app.db.models import Base, EmailThread
+from app.db.models import Base, EmailThread, GmailSyncJob
 from app.schemas import CreateApplicationRequest, GmailConnectStartRequest
 from app.services import gmail
 
@@ -69,6 +69,24 @@ def test_gmail_connect_start_and_callback(monkeypatch) -> None:
         status = routes.gmail_status(db)
         assert status.connected is True
         assert status.email_address == "person@example.com"
+
+
+def test_gmail_sync_route_returns_existing_active_job(monkeypatch) -> None:
+    launched: list[str] = []
+
+    def fake_launch(job_id) -> None:
+        launched.append(str(job_id))
+
+    monkeypatch.setattr(gmail, "launch_sync_job", fake_launch)
+
+    with build_session() as db:
+        first = routes.gmail_sync(db)
+        second = routes.gmail_sync(db)
+
+        assert first.id == second.id
+        assert first.status == "queued"
+        assert second.status == "queued"
+        assert launched == [str(first.id)]
 
 
 def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
@@ -141,7 +159,7 @@ def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
 
         monkeypatch.setattr(gmail.httpx, "get", fake_get)
 
-        sync_result = routes.gmail_sync(db)
+        sync_result = gmail.sync_threads(db)
         assert sync_result.threads_synced == 1
         assert sync_result.suggestions_updated == 1
 
@@ -228,7 +246,7 @@ def test_gmail_sync_skips_low_confidence_threads(monkeypatch) -> None:
 
         monkeypatch.setattr(gmail.httpx, "get", fake_get)
 
-        sync_result = routes.gmail_sync(db)
+        sync_result = gmail.sync_threads(db)
         assert sync_result.threads_synced == 1
 
         links = routes.application_email_links(created.id, db)
@@ -314,7 +332,7 @@ def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatc
 
         monkeypatch.setattr(gmail.httpx, "get", fake_get)
 
-        sync_result = routes.gmail_sync(db)
+        sync_result = gmail.sync_threads(db)
         assert sync_result.threads_synced == 1
         assert sync_result.suggestions_updated == 1
 
@@ -389,13 +407,111 @@ def test_gmail_sync_updates_existing_thread_instead_of_inserting_duplicate(monke
 
         monkeypatch.setattr(gmail.httpx, "get", fake_get)
 
-        sync_result = routes.gmail_sync(db)
+        sync_result = gmail.sync_threads(db)
         assert sync_result.threads_synced == 1
 
         refreshed = db.get(EmailThread, "thread-existing")
         assert refreshed is not None
         assert refreshed.subject == "Updated subject"
         assert refreshed.snippet == "Updated snippet"
+
+
+def test_run_sync_job_marks_job_succeeded(monkeypatch) -> None:
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    testing_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, class_=Session)
+    Base.metadata.create_all(bind=engine)
+
+    monkeypatch.setattr(gmail, "SessionLocal", testing_session_local)
+    monkeypatch.setenv("AUTH_PUBLIC_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_INTERNAL_BASE_URL", "http://100.124.230.107:8100")
+    monkeypatch.setenv("AUTH_SERVICE_TOKEN", "shared-secret")
+
+    db = testing_session_local()
+    try:
+        routes.create_application(
+            CreateApplicationRequest(
+                company_name="OpenAI",
+                job_title="AI Engineer",
+                status="applied",
+                applied_date="2026-03-09",
+                location="Remote",
+                job_url="https://openai.com/careers/roles/1",
+                job_description="Build production AI systems for customers.",
+                cv_used="Experienced engineer shipping AI systems in production.",
+                notes="",
+                cover_letter="",
+                interview_questions=[],
+            ),
+            db,
+        )
+        job = GmailSyncJob(status="queued")
+        db.add(job)
+        db.commit()
+        db.refresh(job)
+
+        def fake_get(url: str, **kwargs):
+            if url == "http://100.124.230.107:8100/oauth/google/token":
+                return _json_response(
+                    {
+                        "access_token": "token",
+                        "expiry": datetime.now(UTC).isoformat(),
+                        "email": "me@example.com",
+                        "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
+                    }
+                )
+            if url == "http://100.124.230.107:8100/status":
+                return _json_response(
+                    {
+                        "app_id": "janus",
+                        "google": {
+                            "connected": True,
+                            "provider": "google",
+                            "email": "me@example.com",
+                            "display_name": "Me",
+                            "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
+                        },
+                    }
+                )
+            if url == gmail.GMAIL_THREADS_URL:
+                return _json_response({"threads": [{"id": "thread-1"}]})
+            if url == f"{gmail.GMAIL_THREADS_URL}/thread-1":
+                return _json_response(
+                    {
+                        "id": "thread-1",
+                        "snippet": "Thanks for applying to the AI Engineer role at OpenAI.",
+                        "messages": [
+                            {
+                                "internalDate": str(int(datetime(2026, 3, 10, 9, 0, tzinfo=UTC).timestamp() * 1000)),
+                                "payload": {
+                                    "headers": [
+                                        {"name": "Subject", "value": "OpenAI AI Engineer application update"},
+                                        {"name": "From", "value": "Recruiting <jobs@openai.com>"},
+                                        {"name": "To", "value": "me@example.com"},
+                                    ]
+                                },
+                            }
+                        ],
+                    }
+                )
+            raise AssertionError(f"Unexpected Gmail GET {url}")
+
+        monkeypatch.setattr(gmail.httpx, "get", fake_get)
+
+        gmail.run_sync_job(job.id)
+
+        db.expire_all()
+        refreshed = db.get(GmailSyncJob, job.id)
+        assert refreshed is not None
+        assert refreshed.status == "succeeded"
+        assert refreshed.threads_synced == 1
+        assert refreshed.suggestions_updated == 1
+        assert refreshed.finished_at is not None
+    finally:
+        db.close()
 
 
 def test_error_message_sanitizes_html_gateway_pages() -> None:

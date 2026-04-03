@@ -1,5 +1,6 @@
 import os
 from http import HTTPStatus
+import threading
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
@@ -9,7 +10,8 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import Application, ApplicationEmailLink, EmailThread
+from app.db.models import Application, ApplicationEmailLink, EmailThread, GmailSyncJob
+from app.db.session import SessionLocal
 
 AUTH_STATUS_PATH = "/status"
 AUTH_GOOGLE_START_PATH = "/oauth/google/start"
@@ -19,6 +21,7 @@ GMAIL_THREADS_URL = "https://gmail.googleapis.com/gmail/v1/users/me/threads"
 MIN_MATCH_SCORE = 50
 DEFAULT_RECENT_THREADS = 25
 DEFAULT_SEARCH_RESULTS_PER_APPLICATION = 10
+ACTIVE_SYNC_JOB_STATUSES = ("queued", "running")
 
 
 class GmailServiceError(RuntimeError):
@@ -29,6 +32,102 @@ class GmailServiceError(RuntimeError):
 class GmailSyncResult:
     threads_synced: int
     suggestions_updated: int
+
+
+def get_active_sync_job(db: Session) -> GmailSyncJob | None:
+    return (
+        db.execute(
+            select(GmailSyncJob)
+            .where(GmailSyncJob.status.in_(ACTIVE_SYNC_JOB_STATUSES))
+            .order_by(GmailSyncJob.created_at.desc())
+        )
+        .scalars()
+        .first()
+    )
+
+
+def get_sync_job(db: Session, job_id: UUID) -> GmailSyncJob | None:
+    return db.get(GmailSyncJob, job_id)
+
+
+def start_sync_job(db: Session) -> tuple[GmailSyncJob, bool]:
+    existing = get_active_sync_job(db)
+    if existing is not None:
+        return existing, False
+
+    job = GmailSyncJob(status="queued")
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+    launch_sync_job(job.id)
+    return job, True
+
+
+def launch_sync_job(job_id: UUID) -> None:
+    threading.Thread(target=run_sync_job, args=(job_id,), daemon=True, name=f"gmail-sync-{job_id}").start()
+
+
+def run_sync_job(job_id: UUID) -> None:
+    db = SessionLocal()
+    try:
+        job = db.get(GmailSyncJob, job_id)
+        if job is None:
+            return
+
+        now = datetime.now(UTC)
+        job.status = "running"
+        job.started_at = job.started_at or now
+        job.finished_at = None
+        job.error = None
+        job.threads_synced = None
+        job.suggestions_updated = None
+        db.add(job)
+        db.commit()
+
+        result = sync_threads(db)
+
+        job = db.get(GmailSyncJob, job_id)
+        if job is None:
+            return
+        job.status = "succeeded"
+        job.threads_synced = result.threads_synced
+        job.suggestions_updated = result.suggestions_updated
+        job.finished_at = datetime.now(UTC)
+        job.error = None
+        db.add(job)
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        job = db.get(GmailSyncJob, job_id)
+        if job is not None:
+            job.status = "failed"
+            job.error = str(exc)
+            job.finished_at = datetime.now(UTC)
+            db.add(job)
+            db.commit()
+    finally:
+        db.close()
+
+
+def recover_interrupted_sync_jobs() -> None:
+    db = SessionLocal()
+    try:
+        jobs = (
+            db.execute(select(GmailSyncJob).where(GmailSyncJob.status.in_(ACTIVE_SYNC_JOB_STATUSES)))
+            .scalars()
+            .all()
+        )
+        if not jobs:
+            return
+        now = datetime.now(UTC)
+        for job in jobs:
+            job.status = "failed"
+            job.finished_at = now
+            job.error = "Sync interrupted during restart."
+            db.add(job)
+        db.commit()
+    finally:
+        db.close()
 
 
 def get_connection_status(db: Session) -> dict[str, Any]:

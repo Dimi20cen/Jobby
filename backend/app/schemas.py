@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 ApplicationStatus = Literal["draft", "applied", "interview", "offer", "rejected", "archived"]
 ApplicationEmailLinkStatus = Literal["suggested", "linked", "rejected"]
+GmailSyncJobStatus = Literal["queued", "running", "succeeded", "failed"]
 
 
 class HealthResponse(BaseModel):
@@ -112,6 +113,18 @@ class GmailSyncResponse(BaseModel):
     connection: GmailConnectionStatus
     threads_synced: int
     suggestions_updated: int
+
+
+class GmailSyncJobResponse(BaseModel):
+    id: UUID
+    status: GmailSyncJobStatus
+    threads_synced: int | None
+    suggestions_updated: int | None
+    error: str | None
+    started_at: datetime | None
+    finished_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
 
 
 class ApplicationEmailThread(BaseModel):

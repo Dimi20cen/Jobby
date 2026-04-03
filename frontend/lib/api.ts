@@ -6,7 +6,7 @@ import {
   CreateApplicationRequest,
   GmailConnectStartResponse,
   GmailConnectionStatus,
-  GmailSyncResponse,
+  GmailSyncJob,
   UpdateApplicationRequest
 } from '@/types';
 
@@ -65,12 +65,19 @@ export async function startGmailConnect(returnPath: string): Promise<GmailConnec
   );
 }
 
-export async function syncGmail(): Promise<GmailSyncResponse> {
-  return parseResponse<GmailSyncResponse>(
+export async function startGmailSync(): Promise<GmailSyncJob> {
+  return parseResponse<GmailSyncJob>(
     await fetch(`${API_BASE}/integrations/gmail/sync`, {
       method: 'POST'
     }),
     'Could not refresh Gmail threads'
+  );
+}
+
+export async function getGmailSyncJob(id: string): Promise<GmailSyncJob> {
+  return parseResponse<GmailSyncJob>(
+    await fetch(`${API_BASE}/integrations/gmail/sync/${id}`, { cache: 'no-store' }),
+    'Could not fetch Gmail sync status'
   );
 }
 

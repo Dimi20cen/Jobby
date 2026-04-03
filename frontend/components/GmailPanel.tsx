@@ -9,6 +9,7 @@ type Props = {
   data: ApplicationEmailLinks | null;
   loading: boolean;
   syncing: boolean;
+  syncMessage?: string | null;
   mutatingThreadId: string | null;
   onConnect: () => void;
   onSync: () => void;
@@ -87,6 +88,7 @@ export default function GmailPanel({
   data,
   loading,
   syncing,
+  syncMessage,
   mutatingThreadId,
   onConnect,
   onSync,
@@ -133,11 +135,13 @@ export default function GmailPanel({
             <Button onClick={onConnect}>Connect Gmail</Button>
           ) : (
             <Button variant="secondary" onClick={onSync} disabled={syncing}>
-              {syncing ? 'Refreshing...' : 'Refresh Threads'}
+              {syncing ? 'Refreshing In Background...' : 'Refresh Threads'}
             </Button>
           )}
         </div>
       </div>
+
+      {syncing && syncMessage ? <p className="muted">{syncMessage}</p> : null}
 
       {connection?.connected ? (
         <>

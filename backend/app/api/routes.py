@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Application
+from app.db.models import Application, GmailSyncJob
 from app.db.session import get_db
 from app.schemas import (
     ApplicationActivityPoint,
@@ -17,7 +17,7 @@ from app.schemas import (
     CreateApplicationRequest,
     GmailConnectStartRequest,
     GmailConnectStartResponse,
-    GmailSyncResponse,
+    GmailSyncJobResponse,
     GmailConnectionStatus,
     HealthResponse,
     UpdateApplicationRequest,
@@ -28,8 +28,9 @@ from app.services.gmail import (
     delete_link,
     get_application_email_links,
     get_connection_status,
+    get_sync_job,
     set_link_status,
-    sync_threads,
+    start_sync_job,
 )
 from app.services.llm import LLMServiceError, generate_application
 
@@ -71,6 +72,20 @@ def _to_detail(application: Application) -> ApplicationDetail:
     )
 
 
+def _to_gmail_sync_job(job: GmailSyncJob) -> GmailSyncJobResponse:
+    return GmailSyncJobResponse(
+        id=job.id,
+        status=job.status,
+        threads_synced=job.threads_synced,
+        suggestions_updated=job.suggestions_updated,
+        error=job.error,
+        started_at=job.started_at,
+        finished_at=job.finished_at,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
+    )
+
+
 def _get_application_or_404(db: Session, application_id: UUID) -> Application:
     application = db.get(Application, application_id)
     if application is None:
@@ -104,17 +119,21 @@ def gmail_connect_start(
     return GmailConnectStartResponse(auth_url=auth_url)
 
 
-@router.post("/integrations/gmail/sync", response_model=GmailSyncResponse)
-def gmail_sync(db: Session = Depends(get_db)) -> GmailSyncResponse:
+@router.post("/integrations/gmail/sync", response_model=GmailSyncJobResponse, status_code=status.HTTP_202_ACCEPTED)
+def gmail_sync(db: Session = Depends(get_db)) -> GmailSyncJobResponse:
     try:
-        result = sync_threads(db)
+        job, _started = start_sync_job(db)
     except GmailServiceError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return GmailSyncResponse(
-        connection=GmailConnectionStatus(**get_connection_status(db)),
-        threads_synced=result.threads_synced,
-        suggestions_updated=result.suggestions_updated,
-    )
+    return _to_gmail_sync_job(job)
+
+
+@router.get("/integrations/gmail/sync/{job_id}", response_model=GmailSyncJobResponse)
+def gmail_sync_status(job_id: UUID, db: Session = Depends(get_db)) -> GmailSyncJobResponse:
+    job = get_sync_job(db, job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Gmail sync job not found")
+    return _to_gmail_sync_job(job)
 
 
 @router.get("/applications", response_model=ApplicationsResponse)

@@ -5,6 +5,7 @@ from app.api.routes import router
 from app.db.migrations import migrate_application_schema
 from app.db.models import Base
 from app.db.session import engine
+from app.services.gmail import recover_interrupted_sync_jobs
 
 app = FastAPI(title="Jobby Backend", version="0.1.0")
 
@@ -21,6 +22,7 @@ app.add_middleware(
 def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
     migrate_application_schema(engine)
+    recover_interrupted_sync_jobs()
 
 
 app.include_router(router)

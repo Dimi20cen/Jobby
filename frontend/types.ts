@@ -74,6 +74,20 @@ export type GmailSyncResponse = {
   suggestions_updated: number;
 };
 
+export type GmailSyncJobStatus = 'queued' | 'running' | 'succeeded' | 'failed';
+
+export type GmailSyncJob = {
+  id: string;
+  status: GmailSyncJobStatus;
+  threads_synced: number | null;
+  suggestions_updated: number | null;
+  error: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CreateApplicationRequest = {
   company_name: string;
   job_title: string;
