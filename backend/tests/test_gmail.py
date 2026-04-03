@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.api import routes
-from app.db.models import Base
+from app.db.models import Base, EmailThread
 from app.schemas import CreateApplicationRequest, GmailConnectStartRequest
 from app.services import gmail
 
@@ -322,6 +322,80 @@ def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatc
         assert len(links.suggested) == 1
         assert links.suggested[0].thread_id == "thread-bending"
         assert any("Bending Spoons" in reason for reason in links.suggested[0].match_reasons)
+
+
+def test_gmail_sync_updates_existing_thread_instead_of_inserting_duplicate(monkeypatch) -> None:
+    monkeypatch.setenv("AUTH_PUBLIC_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_INTERNAL_BASE_URL", "http://100.124.230.107:8100")
+    monkeypatch.setenv("AUTH_SERVICE_TOKEN", "shared-secret")
+    with build_session() as db:
+        db.add(
+            EmailThread(
+                thread_id="thread-existing",
+                subject="Old subject",
+                participants_summary="Old sender",
+                snippet="Old snippet",
+                gmail_url="https://mail.google.com/mail/u/0/#all/thread-existing",
+                raw_matching_text="Old subject Old sender",
+            )
+        )
+        db.commit()
+
+        def fake_get(url: str, **kwargs):
+            if url == "http://100.124.230.107:8100/oauth/google/token":
+                return _json_response(
+                    {
+                        "access_token": "token",
+                        "expiry": datetime.now(UTC).isoformat(),
+                        "email": "me@example.com",
+                        "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
+                    }
+                )
+            if url == "http://100.124.230.107:8100/status":
+                return _json_response(
+                    {
+                        "app_id": "janus",
+                        "google": {
+                            "connected": True,
+                            "provider": "google",
+                            "email": "me@example.com",
+                            "display_name": "Me",
+                            "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
+                        },
+                    }
+                )
+            if url == gmail.GMAIL_THREADS_URL:
+                return _json_response({"threads": [{"id": "thread-existing"}]})
+            if url == f"{gmail.GMAIL_THREADS_URL}/thread-existing":
+                return _json_response(
+                    {
+                        "id": "thread-existing",
+                        "snippet": "Updated snippet",
+                        "messages": [
+                            {
+                                "internalDate": str(int(datetime(2026, 4, 3, 9, 0, tzinfo=UTC).timestamp() * 1000)),
+                                "payload": {
+                                    "headers": [
+                                        {"name": "Subject", "value": "Updated subject"},
+                                        {"name": "From", "value": "Recruiting <jobs@example.com>"},
+                                        {"name": "To", "value": "me@example.com"},
+                                    ]
+                                },
+                            }
+                        ],
+                    }
+                )
+            raise AssertionError(f"Unexpected Gmail GET {url}")
+
+        monkeypatch.setattr(gmail.httpx, "get", fake_get)
+
+        sync_result = routes.gmail_sync(db)
+        assert sync_result.threads_synced == 1
+
+        refreshed = db.get(EmailThread, "thread-existing")
+        assert refreshed is not None
+        assert refreshed.subject == "Updated subject"
+        assert refreshed.snippet == "Updated snippet"
 
 
 def test_error_message_sanitizes_html_gateway_pages() -> None:

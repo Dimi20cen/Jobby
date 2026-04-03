@@ -86,16 +86,19 @@ def sync_threads(db: Session) -> GmailSyncResult:
         if detail_response.status_code >= 400:
             raise GmailServiceError(_error_message(detail_response, f"Could not fetch Gmail thread {thread_id}."))
         thread_payload = detail_response.json()
-        email_thread = db.get(EmailThread, thread_id) or EmailThread(thread_id=thread_id)
         subject, participants_summary, last_message_at, message_count, raw_matching_text = _parse_thread_payload(thread_payload)
-        email_thread.subject = subject
-        email_thread.participants_summary = participants_summary
-        email_thread.snippet = thread_payload.get("snippet", "") or ""
-        email_thread.last_message_at = last_message_at
-        email_thread.message_count = message_count
-        email_thread.gmail_url = f"https://mail.google.com/mail/u/0/#all/{thread_id}"
-        email_thread.raw_matching_text = raw_matching_text
-        db.add(email_thread)
+        db.merge(
+            EmailThread(
+                thread_id=thread_id,
+                subject=subject,
+                participants_summary=participants_summary,
+                snippet=thread_payload.get("snippet", "") or "",
+                last_message_at=last_message_at,
+                message_count=message_count,
+                gmail_url=f"https://mail.google.com/mail/u/0/#all/{thread_id}",
+                raw_matching_text=raw_matching_text,
+            )
+        )
         synced += 1
 
     db.commit()
