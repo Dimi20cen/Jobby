@@ -61,7 +61,8 @@ For a private deployment on `srv` similar to HQ:
    - `POSTGRES_BIND_IP=127.0.0.1`
    - `NEXT_PUBLIC_API_BASE_URL=http://100.124.230.107:8001`
    - `FRONTEND_BASE_URL=http://100.124.230.107:3000`
-   - `AUTH_BASE_URL=https://auth.dimy.dev`
+   - `AUTH_PUBLIC_BASE_URL=https://auth.dimy.dev`
+   - `AUTH_INTERNAL_BASE_URL=http://100.124.230.107:8100`
    - `HERMES_BASE_URL=http://100.124.230.107:8010`
 4. Run `/usr/bin/bash /srv/stacks/jobby/bin/deploy.sh`
 

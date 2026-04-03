@@ -29,7 +29,8 @@ def build_session():
 
 
 def test_gmail_connect_start_and_callback(monkeypatch) -> None:
-    monkeypatch.setenv("AUTH_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_PUBLIC_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_INTERNAL_BASE_URL", "http://100.124.230.107:8100")
     monkeypatch.setenv("FRONTEND_BASE_URL", "http://localhost:3000")
 
     def fake_post(url: str, **kwargs):
@@ -44,7 +45,7 @@ def test_gmail_connect_start_and_callback(monkeypatch) -> None:
         )
 
     def fake_get(url: str, **kwargs):
-        assert url == "https://auth.dimy.dev/status"
+        assert url == "http://100.124.230.107:8100/status"
         return _json_response(
             {
                 "app_id": "janus",
@@ -71,7 +72,8 @@ def test_gmail_connect_start_and_callback(monkeypatch) -> None:
 
 
 def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
-    monkeypatch.setenv("AUTH_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_PUBLIC_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_INTERNAL_BASE_URL", "http://100.124.230.107:8100")
     monkeypatch.setenv("AUTH_SERVICE_TOKEN", "shared-secret")
     with build_session() as db:
         created = routes.create_application(
@@ -91,7 +93,7 @@ def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
             db,
         )
         def fake_get(url: str, **kwargs):
-            if url == "https://auth.dimy.dev/oauth/google/token":
+            if url == "http://100.124.230.107:8100/oauth/google/token":
                 assert kwargs["headers"]["Authorization"] == "Bearer shared-secret"
                 return _json_response(
                     {
@@ -101,7 +103,7 @@ def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
                         "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
                     }
                 )
-            if url == "https://auth.dimy.dev/status":
+            if url == "http://100.124.230.107:8100/status":
                 return _json_response(
                     {
                         "app_id": "janus",
@@ -157,7 +159,8 @@ def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
 
 
 def test_gmail_sync_skips_low_confidence_threads(monkeypatch) -> None:
-    monkeypatch.setenv("AUTH_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_PUBLIC_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_INTERNAL_BASE_URL", "http://100.124.230.107:8100")
     monkeypatch.setenv("AUTH_SERVICE_TOKEN", "shared-secret")
     with build_session() as db:
         created = routes.create_application(
@@ -177,7 +180,7 @@ def test_gmail_sync_skips_low_confidence_threads(monkeypatch) -> None:
             db,
         )
         def fake_get(url: str, **kwargs):
-            if url == "https://auth.dimy.dev/oauth/google/token":
+            if url == "http://100.124.230.107:8100/oauth/google/token":
                 assert kwargs["headers"]["Authorization"] == "Bearer shared-secret"
                 return _json_response(
                     {
@@ -187,7 +190,7 @@ def test_gmail_sync_skips_low_confidence_threads(monkeypatch) -> None:
                         "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
                     }
                 )
-            if url == "https://auth.dimy.dev/status":
+            if url == "http://100.124.230.107:8100/status":
                 return _json_response(
                     {
                         "app_id": "janus",
@@ -234,7 +237,8 @@ def test_gmail_sync_skips_low_confidence_threads(monkeypatch) -> None:
 
 
 def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatch) -> None:
-    monkeypatch.setenv("AUTH_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_PUBLIC_BASE_URL", "https://auth.dimy.dev")
+    monkeypatch.setenv("AUTH_INTERNAL_BASE_URL", "http://100.124.230.107:8100")
     monkeypatch.setenv("AUTH_SERVICE_TOKEN", "shared-secret")
     monkeypatch.setenv("GMAIL_SYNC_RECENT_THREADS", "5")
     monkeypatch.setenv("GMAIL_SYNC_SEARCH_PER_APPLICATION", "5")
@@ -257,7 +261,7 @@ def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatc
         )
 
         def fake_get(url: str, **kwargs):
-            if url == "https://auth.dimy.dev/oauth/google/token":
+            if url == "http://100.124.230.107:8100/oauth/google/token":
                 return _json_response(
                     {
                         "access_token": "token",
@@ -266,7 +270,7 @@ def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatc
                         "scopes": ["openid", "email", "profile", gmail.GMAIL_SCOPE],
                     }
                 )
-            if url == "https://auth.dimy.dev/status":
+            if url == "http://100.124.230.107:8100/status":
                 return _json_response(
                     {
                         "app_id": "janus",
@@ -318,6 +322,18 @@ def test_gmail_sync_searches_per_application_when_recent_threads_miss(monkeypatc
         assert len(links.suggested) == 1
         assert links.suggested[0].thread_id == "thread-bending"
         assert any("Bending Spoons" in reason for reason in links.suggested[0].match_reasons)
+
+
+def test_error_message_sanitizes_html_gateway_pages() -> None:
+    response = httpx.Response(
+        502,
+        text="<!DOCTYPE html><html><body>Bad gateway</body></html>",
+        headers={"content-type": "text/html; charset=UTF-8"},
+    )
+
+    message = gmail._error_message(response, "Could not fetch Google token from auth service.")
+
+    assert message == "Could not fetch Google token from auth service. Upstream returned 502 Bad Gateway."
 
 
 def _json_response(payload):

@@ -1,4 +1,5 @@
 import os
+from http import HTTPStatus
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
@@ -46,7 +47,7 @@ def get_connection_status(db: Session) -> dict[str, Any]:
 
 def build_connect_url(db: Session, return_path: str | None) -> str:
     _ = db
-    auth_base_url = _require_env("AUTH_BASE_URL")
+    auth_base_url = _auth_public_base_url()
     frontend_base_url = _require_env("FRONTEND_BASE_URL")
     normalized_return_path = _normalize_return_path(return_path)
     absolute_return_url = f"{frontend_base_url.rstrip('/')}{normalized_return_path}"
@@ -394,7 +395,7 @@ def _parse_thread_payload(payload: dict[str, Any]) -> tuple[str, str, datetime |
 
 
 def _fetch_auth_service_status() -> dict[str, Any]:
-    auth_base_url = _require_env("AUTH_BASE_URL")
+    auth_base_url = _auth_internal_base_url()
     response = httpx.get(f"{auth_base_url.rstrip('/')}{AUTH_STATUS_PATH}", timeout=30)
     if response.status_code >= 400:
         raise GmailServiceError(_error_message(response, "Could not fetch auth service status."))
@@ -402,7 +403,7 @@ def _fetch_auth_service_status() -> dict[str, Any]:
 
 
 def _fetch_google_access_token() -> str:
-    auth_base_url = _require_env("AUTH_BASE_URL")
+    auth_base_url = _auth_internal_base_url()
     auth_service_token = _require_env("AUTH_SERVICE_TOKEN")
     response = httpx.get(
         f"{auth_base_url.rstrip('/')}{AUTH_GOOGLE_TOKEN_PATH}",
@@ -423,6 +424,14 @@ def _require_env(name: str) -> str:
     if not value:
         raise GmailServiceError(f"{name} must be set before using Gmail integration.")
     return value
+
+
+def _auth_public_base_url() -> str:
+    return _require_env("AUTH_PUBLIC_BASE_URL")
+
+
+def _auth_internal_base_url() -> str:
+    return os.getenv("AUTH_INTERNAL_BASE_URL", "").strip() or _auth_public_base_url()
 
 
 def _normalize_return_path(return_path: str | None) -> str:
@@ -461,4 +470,12 @@ def _error_message(response: httpx.Response, fallback: str) -> str:
                 return str(error["message"])
             if isinstance(error, str):
                 return error
-    return response.text or fallback
+
+    status_label = HTTPStatus(response.status_code).phrase if response.status_code in HTTPStatus._value2member_map_ else "Error"
+    if response.headers.get("content-type", "").startswith("text/html"):
+        return f"{fallback} Upstream returned {response.status_code} {status_label}."
+
+    text = response.text.strip()
+    if not text:
+        return fallback
+    return text

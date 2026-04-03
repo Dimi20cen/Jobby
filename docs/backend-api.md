@@ -212,6 +212,8 @@ Request shape:
 ### `POST /integrations/gmail/sync`
 Fetches recent Gmail threads plus per-application Gmail search matches using a Google access token obtained from the shared auth service, stores normalized thread metadata, and refreshes per-application suggestions.
 
+In private deployments, this sync path can use an internal Janus base URL while the browser OAuth start flow still uses the public `https://auth.dimy.dev` entrypoint.
+
 ## Error Handling
 Current error approach:
 - `404` when an application is not found

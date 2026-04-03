@@ -119,7 +119,8 @@ For the private `srv` deployment, use:
 - `HERMES_TIMEOUT_SECONDS`
 
 ### Gmail integration
-- `AUTH_BASE_URL`
+- `AUTH_PUBLIC_BASE_URL`
+- `AUTH_INTERNAL_BASE_URL`
 - `AUTH_SERVICE_TOKEN`
 - `FRONTEND_BASE_URL`
 - `GMAIL_SYNC_RECENT_THREADS`
@@ -188,9 +189,15 @@ make logs
 
 ## Gmail Setup Notes
 - deploy and configure the shared auth service at `https://auth.dimy.dev`
-- add `AUTH_BASE_URL` and `AUTH_SERVICE_TOKEN` to Jobby `.env`
+- add `AUTH_PUBLIC_BASE_URL` and `AUTH_SERVICE_TOKEN` to Jobby `.env`
 - connect Google through the application detail page, which now starts the flow at the shared auth service
 - use `Refresh Threads` on the application page to fetch recent recruiter mail plus targeted company searches for saved applications
+
+For private `srv` deployments, set:
+- `AUTH_PUBLIC_BASE_URL=https://auth.dimy.dev`
+- `AUTH_INTERNAL_BASE_URL=http://100.124.230.107:8100`
+
+This keeps the Google-facing OAuth flow public while letting Jobby fetch auth status and Gmail tokens over the private tailnet path.
 
 ## Private `srv` Deploy
 - repo path: `/srv/stacks/jobby`
@@ -226,6 +233,7 @@ The application must already contain:
 
 ### Gmail connect or sync fails
 Check:
-- `AUTH_BASE_URL` points to the running shared auth service
+- `AUTH_PUBLIC_BASE_URL` points to the public Google-facing auth service
+- `AUTH_INTERNAL_BASE_URL` points to the private Janus base URL when you want Jobby-to-Janus calls to stay on tailnet; if unset, Jobby falls back to `AUTH_PUBLIC_BASE_URL`
 - `AUTH_SERVICE_TOKEN` matches the token configured on the shared auth service
 - `FRONTEND_BASE_URL` points to your running Next.js app
