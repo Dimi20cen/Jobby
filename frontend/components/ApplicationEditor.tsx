@@ -13,6 +13,7 @@ import {
   createApplication,
   deleteApplication,
   generateApplication,
+  getActiveGmailSyncJob,
   getApplication,
   getApplicationEmailLinks,
   getGmailSyncJob,
@@ -150,6 +151,34 @@ export default function ApplicationEditor({ applicationId, isNew = false }: Prop
       router.replace(window.location.pathname);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (!existingApplicationId || isNew) {
+      return;
+    }
+
+    let active = true;
+
+    async function resumeActiveSync(): Promise<void> {
+      try {
+        const activeJob = await getActiveGmailSyncJob();
+        if (!active || !activeJob || !['queued', 'running'].includes(activeJob.status)) {
+          return;
+        }
+        setGmailSyncJob(activeJob);
+        setSyncingGmail(true);
+        setNotice('Gmail refresh resumed. Threads are still updating in the background.');
+      } catch {
+        if (!active) return;
+      }
+    }
+
+    void resumeActiveSync();
+
+    return () => {
+      active = false;
+    };
+  }, [existingApplicationId, isNew]);
 
   useEffect(() => {
     if (!gmailSyncJob || !['queued', 'running'].includes(gmailSyncJob.status)) {

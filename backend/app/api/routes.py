@@ -26,6 +26,7 @@ from app.services.gmail import (
     GmailServiceError,
     build_connect_url,
     delete_link,
+    get_active_sync_job,
     get_application_email_links,
     get_connection_status,
     get_sync_job,
@@ -133,6 +134,14 @@ def gmail_sync_status(job_id: UUID, db: Session = Depends(get_db)) -> GmailSyncJ
     job = get_sync_job(db, job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Gmail sync job not found")
+    return _to_gmail_sync_job(job)
+
+
+@router.get("/integrations/gmail/sync/active", response_model=GmailSyncJobResponse | None)
+def gmail_sync_active(db: Session = Depends(get_db)) -> GmailSyncJobResponse | None:
+    job = get_active_sync_job(db)
+    if job is None:
+        return None
     return _to_gmail_sync_job(job)
 
 

@@ -89,6 +89,28 @@ def test_gmail_sync_route_returns_existing_active_job(monkeypatch) -> None:
         assert launched == [str(first.id)]
 
 
+def test_gmail_sync_active_returns_running_job(monkeypatch) -> None:
+    launched: list[str] = []
+
+    def fake_launch(job_id) -> None:
+        launched.append(str(job_id))
+
+    monkeypatch.setattr(gmail, "launch_sync_job", fake_launch)
+
+    with build_session() as db:
+        created = routes.gmail_sync(db)
+        job = db.get(GmailSyncJob, created.id)
+        assert job is not None
+        job.status = "running"
+        db.add(job)
+        db.commit()
+
+        active = routes.gmail_sync_active(db)
+        assert active is not None
+        assert active.id == created.id
+        assert active.status == "running"
+
+
 def test_gmail_sync_suggests_matching_threads(monkeypatch) -> None:
     monkeypatch.setenv("AUTH_PUBLIC_BASE_URL", "https://auth.dimy.dev")
     monkeypatch.setenv("AUTH_INTERNAL_BASE_URL", "http://100.124.230.107:8100")

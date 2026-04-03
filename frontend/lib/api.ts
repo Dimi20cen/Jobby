@@ -81,6 +81,13 @@ export async function getGmailSyncJob(id: string): Promise<GmailSyncJob> {
   );
 }
 
+export async function getActiveGmailSyncJob(): Promise<GmailSyncJob | null> {
+  return parseResponse<GmailSyncJob | null>(
+    await fetch(`${API_BASE}/integrations/gmail/sync/active`, { cache: 'no-store' }),
+    'Could not fetch active Gmail sync status'
+  );
+}
+
 export async function getApplicationEmailLinks(id: string): Promise<ApplicationEmailLinks> {
   return parseResponse<ApplicationEmailLinks>(
     await fetch(`${API_BASE}/applications/${id}/email-links`, { cache: 'no-store' }),
