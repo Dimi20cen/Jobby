@@ -28,12 +28,13 @@ def build_session():
 
 def test_create_list_and_activity() -> None:
     with build_session() as db:
+        recent_applied_date = (date.today() - timedelta(days=1)).isoformat()
         created = routes.create_application(
             CreateApplicationRequest(
                 company_name="OpenAI",
                 job_title="AI Engineer",
                 status="applied",
-                applied_date="2026-03-09",
+                applied_date=recent_applied_date,
                 location="Remote",
                 job_url="https://example.com/jobs/1",
                 job_description="Build product-grade AI systems for users.",
